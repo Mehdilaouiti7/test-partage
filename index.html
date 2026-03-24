@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -155,140 +156,146 @@ const sb=supabase.createClient(SB_URL,SB_KEY);
 const SOURCES=['PayPal','Oney','Cofidis','Carte bancaire','Virement','Prélèvement','Autre'];
 
 // PIN
-let pv='',cp='1234';
-async function loadPin(){const{data}=await sb.from('app_config').select('value').eq('key','pin').single();if(data)cp=data.value;}
+let pv=’’,cp=‘1234’;
+async function loadPin(){const{data}=await sb.from(‘app_config’).select(‘value’).eq(‘key’,‘pin’).single();if(data)cp=data.value;}
 function pi(n){if(pv.length>=4)return;pv+=n;upd();if(pv.length===4)chk();}
-function pd(){pv=pv.slice(0,-1);upd();document.getElementById('pinError').textContent='';}
-function upd(){for(let i=0;i<4;i++)document.getElementById('d'+i).className='pin-dot'+(i<pv.length?' filled':'');}
-async function chk(){await loadPin();if(pv===cp){document.getElementById('pinScreen').style.display='none';document.getElementById('appScreen').style.display='block';init();}else{document.getElementById('pinError').textContent='Code incorrect';pv='';upd();}}
+function pd(){pv=pv.slice(0,-1);upd();document.getElementById(‘pinError’).textContent=’’;}
+function upd(){for(let i=0;i<4;i++)document.getElementById(‘d’+i).className=‘pin-dot’+(i<pv.length?’ filled’:’’);}
+async function chk(){await loadPin();if(pv===cp){document.getElementById(‘pinScreen’).style.display=‘none’;document.getElementById(‘appScreen’).style.display=‘block’;init();}else{document.getElementById(‘pinError’).textContent=‘Code incorrect’;pv=’’;upd();}}
 
-let S={data:[],tab:'all',fa:'tous',fs:'tous',fq:'',modal:null,payId:null,pinModal:false};
+let S={data:[],tab:‘all’,fa:‘tous’,fs:‘tous’,fq:’’,modal:null,payId:null,pinModal:false};
 
-async function loadData(){const{data}=await sb.from('echeances').select('*').order('due');S.data=data||[];}
-function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
-function nextMonth(s){const d=new Date(s+'T12:00:00');d.setMonth(d.getMonth()+1);return d.toISOString().split('T')[0];}
+async function loadData(){const{data}=await sb.from(‘echeances’).select(’*’).order(‘due’);S.data=data||[];}
+function fmt(n){return Number(n).toLocaleString(‘fr-FR’,{minimumFractionDigits:2,maximumFractionDigits:2})+’ €’;}
+function nextMonth(s){const d=new Date(s+‘T12:00:00’);d.setMonth(d.getMonth()+1);return d.toISOString().split(‘T’)[0];}
 
 // Retourne le montant du versement N (0-based) pour un achat
 function getVersement(d, idx){
-  if(d.versement_type==='perso'&&d.versements_perso&&d.versements_perso[idx]){
-    return parseFloat(d.versements_perso[idx].montant)||0;
-  }
-  return parseFloat(d.versement)||0;
+if(d.versement_type===‘perso’&&d.versements_perso&&d.versements_perso[idx]){
+return parseFloat(d.versements_perso[idx].montant)||0;
+}
+return parseFloat(d.versement)||0;
 }
 
 // Retourne la part copine pour le versement N
 function getCopinePart(d, idx){
-  if(!d.partage) return 0;
-  const v=getVersement(d,idx);
-  if(d.partage_type==='perso'&&d.versements_perso&&d.versements_perso[idx]){
-    return parseFloat(d.versements_perso[idx].copine_montant)||0;
-  }
-  return v/2; // 50/50 par défaut
+if(!d.partage) return 0;
+const v=getVersement(d,idx);
+if(d.partage_type===‘perso’&&d.versements_perso&&d.versements_perso[idx]){
+return parseFloat(d.versements_perso[idx].copine_montant)||0;
+}
+return v/2; // 50/50 par défaut
 }
 
 function cmp(d){
-  const rest=d.total_inst-d.pays;
-  // Calcul total selon type
-  let total=0,deja=0,restant=0,partCopine=0;
-  if(d.versement_type==='perso'&&d.versements_perso&&d.versements_perso.length){
-    for(let i=0;i<d.total_inst;i++){
-      const v=getVersement(d,i);
-      total+=v;
-      if(i<d.pays){deja+=v;}
-      else{restant+=v;if(d.partage&&!d.rembourse)partCopine+=getCopinePart(d,i);}
-    }
-  } else {
-    const v=parseFloat(d.versement)||0;
-    total=d.montant_total||(v*d.total_inst);
-    deja=v*d.pays;
-    restant=v*rest;
-    if(d.partage&&!d.rembourse){
-      if(d.partage_type==='perso'&&d.versements_perso){
-        for(let i=d.pays;i<d.total_inst;i++) partCopine+=getCopinePart(d,i);
-      } else partCopine=restant/2;
-    }
-  }
-  const today=new Date();today.setHours(0,0,0,0);
-  const due=new Date(d.due+'T12:00:00');
-  const jours=Math.round((due-today)/86400000);
-  const statut=rest===0?'soldé':jours<0?'retard':jours<=7?'urgent':'ok';
-  const lp=d.last_paid_date?new Date(d.last_paid_date+'T12:00:00'):null;
-  const nowKey=`${new Date().getMonth()}-${new Date().getFullYear()}`;
-  const lpKey=lp?`${lp.getMonth()}-${lp.getFullYear()}`:'';
-  const payDis=(lpKey===nowKey)||rest===0;
-  // Montant versement courant (prochain à payer)
-  const currentVersement=getVersement(d,d.pays);
-  const currentCopine=getCopinePart(d,d.pays);
-  return{rest,total,deja,restant,partCopine,jours,statut,payDis,currentVersement,currentCopine};
+const rest=d.total_inst-d.pays;
+// Calcul total selon type
+let total=0,deja=0,restant=0,partCopine=0;
+if(d.versement_type===‘perso’&&d.versements_perso&&d.versements_perso.length){
+for(let i=0;i<d.total_inst;i++){
+const v=getVersement(d,i);
+total+=v;
+if(i<d.pays){deja+=v;}
+else{restant+=v;if(d.partage&&!d.rembourse)partCopine+=getCopinePart(d,i);}
+}
+} else {
+const v=parseFloat(d.versement)||0;
+total=d.montant_total||(v*d.total_inst);
+deja=v*d.pays;
+restant=v*rest;
+if(d.partage&&!d.rembourse){
+if(d.partage_type===‘perso’&&d.versements_perso){
+for(let i=d.pays;i<d.total_inst;i++) partCopine+=getCopinePart(d,i);
+} else partCopine=restant/2;
+}
+}
+const today=new Date();today.setHours(0,0,0,0);
+const due=new Date(d.due+‘T12:00:00’);
+const jours=Math.round((due-today)/86400000);
+const statut=rest===0?‘soldé’:jours<0?‘retard’:jours<=7?‘urgent’:‘ok’;
+const lp=d.last_paid_date?new Date(d.last_paid_date+‘T12:00:00’):null;
+const nowKey=`${new Date().getMonth()}-${new Date().getFullYear()}`;
+const lpKey=lp?`${lp.getMonth()}-${lp.getFullYear()}`:’’;
+const payDis=(lpKey===nowKey)||rest===0;
+// Montant versement courant (prochain à payer)
+const currentVersement=getVersement(d,d.pays);
+const currentCopine=getCopinePart(d,d.pays);
+return{rest,total,deja,restant,partCopine,jours,statut,payDis,currentVersement,currentCopine};
 }
 
-function monthData(){
-  const now=new Date();const y=now.getFullYear(),m=now.getMonth();
-  const s=new Date(y,m,1),e=new Date(y,m+1,0);
-  const moi=[],cop=[];
-  S.data.forEach(d=>{
-    const c=cmp(d);if(c.statut==='soldé')return;
-    const due=new Date(d.due+'T12:00:00');
-    if(due>=s&&due<=e){
-      const mv=c.currentVersement;
-      const cv=c.currentCopine;
-      if(d.acheteur==='Moi'||d.partage) moi.push({n:d.marchand,m:d.partage?mv-cv:mv,p:d.partage});
-      if(d.acheteur==='Copine'||d.partage) cop.push({n:d.marchand,m:d.partage?cv:mv,p:d.partage});
-    }
-  });
-  return{moi,cop};
+function getMonthData(year, month){
+const s=new Date(year,month,1),e=new Date(year,month+1,0);
+const moi=[],cop=[];
+S.data.forEach(d=>{
+const c=cmp(d);if(c.statut===‘soldé’)return;
+const due=new Date(d.due+‘T12:00:00’);
+if(due>=s&&due<=e){
+const mv=c.currentVersement;
+const cv=c.currentCopine;
+if(d.acheteur===‘Moi’||d.partage) moi.push({n:d.marchand,m:d.partage?mv-cv:mv,p:d.partage});
+if(d.acheteur===‘Copine’||d.partage) cop.push({n:d.marchand,m:d.partage?cv:mv,p:d.partage});
 }
+});
+return{moi,cop};
+}
+function monthData(){const now=new Date();return getMonthData(now.getFullYear(),now.getMonth());}
+function nextMonthData(){const now=new Date();const nm=now.getMonth()+1;const ny=nm>11?now.getFullYear()+1:now.getFullYear();return getMonthData(ny,nm>11?0:nm);}
+function nextMonthName(){const d=new Date();d.setMonth(d.getMonth()+1);return d.toLocaleDateString(‘fr-FR’,{month:‘long’,year:‘numeric’});}
 
 function filtered(){
-  const today=new Date();today.setHours(0,0,0,0);
-  return S.data.filter(d=>{
-    const c=cmp(d);const due=new Date(d.due+'T12:00:00');
-    if(S.tab==='all'&&c.statut==='soldé')return false;
-    if(S.tab==='upcoming'&&(c.statut==='soldé'||due<today&&c.statut!=='retard'))return false;
-    if(S.tab==='past'&&c.statut!=='soldé')return false;
-    const fa=S.fa;
-    if(fa==='moi_all'&&d.acheteur!=='Moi')return false;
-    if(fa==='moi_solo'&&!(d.acheteur==='Moi'&&!d.partage))return false;
-    if(fa==='cop_all'&&d.acheteur!=='Copine')return false;
-    if(fa==='cop_solo'&&!(d.acheteur==='Copine'&&!d.partage))return false;
-    if(fa==='partage'&&!d.partage)return false;
-    if(S.fs!=='tous'&&d.source!==S.fs)return false;
-    if(S.fq&&!d.marchand.toLowerCase().includes(S.fq.toLowerCase())&&!(d.notes||'').toLowerCase().includes(S.fq.toLowerCase()))return false;
-    return true;
-  }).sort((a,b)=>new Date(a.due)-new Date(b.due));
+const today=new Date();today.setHours(0,0,0,0);
+return S.data.filter(d=>{
+const c=cmp(d);const due=new Date(d.due+‘T12:00:00’);
+if(S.tab===‘all’&&c.statut===‘soldé’)return false;
+if(S.tab===‘upcoming’&&(c.statut===‘soldé’||due<today&&c.statut!==‘retard’))return false;
+if(S.tab===‘past’&&c.statut!==‘soldé’)return false;
+const fa=S.fa;
+if(fa===‘moi_all’&&d.acheteur!==‘Moi’)return false;
+if(fa===‘moi_solo’&&!(d.acheteur===‘Moi’&&!d.partage))return false;
+if(fa===‘cop_all’&&d.acheteur!==‘Copine’)return false;
+if(fa===‘cop_solo’&&!(d.acheteur===‘Copine’&&!d.partage))return false;
+if(fa===‘partage’&&!d.partage)return false;
+if(S.fs!==‘tous’&&d.source!==S.fs)return false;
+if(S.fq&&!d.marchand.toLowerCase().includes(S.fq.toLowerCase())&&!(d.notes||’’).toLowerCase().includes(S.fq.toLowerCase()))return false;
+return true;
+}).sort((a,b)=>new Date(a.due)-new Date(b.due));
 }
 
 function kpis(){
-  let te=0,tr=0,tp=0,mr=0,cr=0;
-  S.data.forEach(d=>{const c=cmp(d);te+=c.total;tr+=c.restant;if(d.partage)tp+=c.partCopine;if(d.acheteur==='Moi')mr+=d.partage?c.restant-c.partCopine:c.restant;if(d.acheteur==='Copine')cr+=c.restant;});
-  return{te,tr,tp,mr,cr};
+let te=0,tr=0,tp=0,mr=0,cr=0;
+S.data.forEach(d=>{const c=cmp(d);te+=c.total;tr+=c.restant;if(d.partage)tp+=c.partCopine;if(d.acheteur===‘Moi’)mr+=d.partage?c.restant-c.partCopine:c.restant;if(d.acheteur===‘Copine’)cr+=c.restant;});
+return{te,tr,tp,mr,cr};
 }
 
-function fd(s){return new Date(s+'T12:00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});}
-function fdf(s){return new Date(s+'T12:00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});}
-function monthName(){return new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});}
-function sBadge(s){const m={soldé:['b-done','Soldé'],retard:['b-late','Retard'],urgent:['b-urgent','Urgent'],ok:['b-ok','OK']};const[c,t]=m[s];return`<span class="badge ${c}">${t}</span>`;}
+function fd(s){return new Date(s+‘T12:00:00’).toLocaleDateString(‘fr-FR’,{day:‘2-digit’,month:‘short’});}
+function fdf(s){return new Date(s+‘T12:00:00’).toLocaleDateString(‘fr-FR’,{day:‘2-digit’,month:‘short’,year:‘numeric’});}
+function monthName(){return new Date().toLocaleDateString(‘fr-FR’,{month:‘long’,year:‘numeric’});}
+function sBadge(s){const m={soldé:[‘b-done’,‘Soldé’],retard:[‘b-late’,‘Retard’],urgent:[‘b-urgent’,‘Urgent’],ok:[‘b-ok’,‘OK’]};const[c,t]=m[s];return`<span class="badge ${c}">${t}</span>`;}
 function aBadge(d){
-  if(d.partage){
-    const label=d.partage_type==='perso'?'Partagé perso':'Partagé 50/50';
-    return`<span class="badge b-partage">${label}</span>`;
-  }
-  if(d.acheteur==='Copine')return`<span class="badge b-copine">Copine</span>`;
-  return`<span class="badge b-moi">Moi</span>`;
+if(d.partage){
+const label=d.partage_type===‘perso’?‘Partagé perso’:‘Partagé 50/50’;
+return`<span class="badge b-partage">${label}</span>`;
+}
+if(d.acheteur===‘Copine’)return`<span class="badge b-copine">Copine</span>`;
+return`<span class="badge b-moi">Moi</span>`;
 }
 function jt(j){if(j<0)return`<span class="red" style="font-weight:700">${Math.abs(j)}j</span>`;if(j===0)return`<span style="color:#D85A30;font-weight:700">Auj.</span>`;if(j<=7)return`<span style="color:#D85A30;font-weight:600">${j}j</span>`;return`<span style="color:#718096">${j}j</span>`;}
 
 function render(){
-  const k=kpis();
-  const al=S.data.filter(d=>{const c=cmp(d);return c.statut==='urgent'||c.statut==='retard';}).sort((a,b)=>new Date(a.due)-new Date(b.due));
-  const rows=filtered();
-  const md=monthData();
-  const tmoi=md.moi.reduce((s,i)=>s+i.m,0);
-  const tcop=md.cop.reduce((s,i)=>s+i.m,0);
-  let sm={e:0,d:0,r:0},sc={e:0,d:0,r:0},sp={e:0,d:0,r:0,a:0};
-  S.data.forEach(d=>{const c=cmp(d);if(d.partage){sp.e+=c.total;sp.d+=c.deja;sp.r+=c.restant;sp.a+=c.partCopine;}else if(d.acheteur==='Moi'){sm.e+=c.total;sm.d+=c.deja;sm.r+=c.restant;}else{sc.e+=c.total;sc.d+=c.deja;sc.r+=c.restant;}});
+const k=kpis();
+const al=S.data.filter(d=>{const c=cmp(d);return c.statut===‘urgent’||c.statut===‘retard’;}).sort((a,b)=>new Date(a.due)-new Date(b.due));
+const rows=filtered();
+const md=monthData();
+const nmd=nextMonthData();
+const tmoi=md.moi.reduce((s,i)=>s+i.m,0);
+const tcop=md.cop.reduce((s,i)=>s+i.m,0);
+const tnmoi=nmd.moi.reduce((s,i)=>s+i.m,0);
+const tncop=nmd.cop.reduce((s,i)=>s+i.m,0);
+let sm={e:0,d:0,r:0},sc={e:0,d:0,r:0},sp={e:0,d:0,r:0,a:0};
+S.data.forEach(d=>{const c=cmp(d);if(d.partage){sp.e+=c.total;sp.d+=c.deja;sp.r+=c.restant;sp.a+=c.partCopine;}else if(d.acheteur===‘Moi’){sm.e+=c.total;sm.d+=c.deja;sm.r+=c.restant;}else{sc.e+=c.total;sc.d+=c.deja;sc.r+=c.restant;}});
 
-  document.getElementById('appScreen').innerHTML=`
+document.getElementById(‘appScreen’).innerHTML=`
+
 <div class="topbar">
   <h1>Mes <span>échéances</span></h1>
   <div class="topbar-right">
@@ -315,6 +322,21 @@ function render(){
       <h3 class="amber">💑 Copine à payer</h3>
       ${md.cop.length===0?'<div style="font-size:12px;color:#a0aec0">Rien ce mois</div>':md.cop.map(i=>`<div class="month-item"><span style="color:#4a5568">${i.n}${i.p?' <small style="color:#27500A">(partage)</small>':''}</span><span class="amber" style="font-weight:600">${fmt(i.m)}</span></div>`).join('')}
       ${md.cop.length>0?`<div class="month-total"><span>Total</span><span class="amber">${fmt(tcop)}</span></div>`:''}
+    </div>
+  </div>
+</div>
+<div class="month-box" style="border-color:#c7d2fe;background:#fafafa">
+  <div class="month-box-title" style="color:#4338ca">📆 Mois prochain — ${nextMonthName()}</div>
+  <div class="month-cols">
+    <div>
+      <h3 style="color:#4338ca">👤 Moi</h3>
+      ${nmd.moi.length===0?'<div style="font-size:12px;color:#a0aec0">Rien le mois prochain</div>':nmd.moi.map(i=>`<div class="month-item"><span style="color:#4a5568">${i.n}${i.p?' <small style="color:#27500A">(partage)</small>':''}</span><span style="color:#4338ca;font-weight:600">${fmt(i.m)}</span></div>`).join('')}
+      ${nmd.moi.length>0?`<div class="month-total"><span>Total</span><span style="color:#4338ca">${fmt(tnmoi)}</span></div>`:''}
+    </div>
+    <div>
+      <h3 style="color:#b45309">💑 Copine</h3>
+      ${nmd.cop.length===0?'<div style="font-size:12px;color:#a0aec0">Rien le mois prochain</div>':nmd.cop.map(i=>`<div class="month-item"><span style="color:#4a5568">${i.n}${i.p?' <small style="color:#27500A">(partage)</small>':''}</span><span style="color:#b45309;font-weight:600">${fmt(i.m)}</span></div>`).join('')}
+      ${nmd.cop.length>0?`<div class="month-total"><span>Total</span><span style="color:#b45309">${fmt(tncop)}</span></div>`:''}
     </div>
   </div>
 </div>
@@ -408,251 +430,230 @@ ${S.pinModal?pinModal():''}
 
 // ─── EDIT MODAL ───────────────────────────────────────────────────────────────
 function editModal(){
-  const isE=S.modal!=='new';
-  const d=isE?S.data.find(x=>x.id===S.modal):{marchand:'',versement:'',montant_total:'',pays:0,total_inst:4,due:'',acheteur:'Moi',partage:false,partage_type:'50/50',versement_type:'egal',versements_perso:null,source:'Carte bancaire',notes:''};
-  if(!d)return'';
-  const vtype=d.versement_type||'egal';
-  const ptype=d.partage_type||'50/50';
-  const nbInst=parseInt(d.total_inst)||4;
-  // Build versements perso table
-  let vpersoRows='';
-  if(vtype==='perso'){
-    const showCopine=d.partage&&ptype==='perso';
-    vpersoRows=`<div class="vperso-section">
-      <h4>Saisir chaque versement${showCopine?' et la part de ta copine':''}</h4>
-      <table class="vperso-table">
-        <thead><tr><th>#</th><th>Montant (€)</th>${showCopine?'<th>Part copine (€)</th>':''}</tr></thead>
-        <tbody>
-          ${Array.from({length:nbInst},(_,i)=>{
-            const vp=(d.versements_perso&&d.versements_perso[i])||{};
-            return`<tr>
-              <td style="color:#718096;font-weight:600">${i+1}</td>
-              <td><input type="number" step="0.01" id="vp_m_${i}" value="${vp.montant||''}" placeholder="0.00" oninput="updatePersoTotal()"></td>
-              ${showCopine?`<td><input type="number" step="0.01" id="vp_c_${i}" value="${vp.copine_montant||''}" placeholder="0.00"></td>`:''}
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-      <div style="margin-top:8px;font-size:12px;color:#718096">Total calculé : <span id="persoTotal" style="font-weight:600;color:#185FA5">0,00 €</span></div>
-    </div>`;
-  }
+const isE=S.modal!==‘new’;
+const d=isE?S.data.find(x=>x.id===S.modal):{marchand:’’,versement:’’,montant_total:’’,pays:0,total_inst:4,due:’’,acheteur:‘Moi’,partage:false,partage_type:‘50/50’,versement_type:‘egal’,versements_perso:null,source:‘Carte bancaire’,notes:’’};
+if(!d)return’’;
+const vtype=d.versement_type||‘egal’;
+const ptype=d.partage_type||‘50/50’;
+const nbInst=parseInt(d.total_inst)||4;
+// Build versements perso table
+let vpersoRows=’’;
+if(vtype===‘perso’){
+const showCopine=d.partage&&ptype===‘perso’;
+vpersoRows=`<div class="vperso-section"> <h4>Saisir chaque versement${showCopine?' et la part de ta copine':''}</h4> <table class="vperso-table"> <thead><tr><th>#</th><th>Montant (€)</th>${showCopine?'<th>Part copine (€)</th>':''}</tr></thead> <tbody> ${Array.from({length:nbInst},(_,i)=>{ const vp=(d.versements_perso&&d.versements_perso[i])||{}; return`<tr>
+<td style="color:#718096;font-weight:600">${i+1}</td>
+<td><input type="number" step="0.01" id="vp_m_${i}" value="${vp.montant||''}" placeholder="0.00" oninput="updatePersoTotal()"></td>
+${showCopine?`<td><input type="number" step="0.01" id="vp_c_${i}" value="${vp.copine_montant||''}" placeholder="0.00"></td>`:’’}
+</tr>`; }).join('')} </tbody> </table> <div style="margin-top:8px;font-size:12px;color:#718096">Total calculé : <span id="persoTotal" style="font-weight:600;color:#185FA5">0,00 €</span></div> </div>`;
+}
 
-  return`<div class="overlay" onclick="if(event.target===this){S.modal=null;render()}"><div class="modal">
-    <h2>${isE?'Modifier l\'achat':'Ajouter un achat'}</h2>
-    <div class="fg">
-      <div class="frow full"><label>Marchand *</label><input id="fm" value="${d.marchand||''}" placeholder="Ex: Amazon..."></div>
+return`<div class="overlay" onclick="if(event.target===this){S.modal=null;render()}"><div class="modal">
+<h2>${isE?‘Modifier l'achat’:‘Ajouter un achat’}</h2>
+<div class="fg">
+<div class="frow full"><label>Marchand *</label><input id="fm" value="${d.marchand||''}" placeholder="Ex: Amazon..."></div>
 
-      <div class="frow full"><label>Type de versements</label>
-        <select id="fvtype" onchange="toggleVperso()">
-          <option value="egal" ${vtype==='egal'?'selected':''}>Versements égaux</option>
-          <option value="perso" ${vtype==='perso'?'selected':''}>Versements personnalisés (montants différents)</option>
-        </select>
-      </div>
+```
+  <div class="frow full"><label>Type de versements</label>
+    <select id="fvtype" onchange="toggleVperso()">
+      <option value="egal" ${vtype==='egal'?'selected':''}>Versements égaux</option>
+      <option value="perso" ${vtype==='perso'?'selected':''}>Versements personnalisés (montants différents)</option>
+    </select>
+  </div>
 
-      <div class="frow" id="fv-row" style="${vtype==='perso'?'display:none':''}"><label>Versement (€) *</label><input id="fv" type="number" step="0.01" value="${d.versement||''}" oninput="act()"></div>
-      <div class="frow"><label>Nb versements total</label><input id="ft" type="number" min="1" value="${d.total_inst||4}" oninput="act();toggleVperso()"></div>
-      <div class="frow" id="ftt-row" style="${vtype==='perso'?'display:none':''}"><label>Montant total (€)</label><input id="ftt" type="number" step="0.01" value="${d.montant_total||''}" placeholder="Auto" oninput="this.dataset.m=1"></div>
-      <div class="frow"><label>Versements payés</label><input id="fp" type="number" min="0" value="${d.pays||0}"></div>
-      <div class="frow"><label>Prochaine échéance *</label><input id="fd" type="date" value="${d.due||''}"></div>
-      <div class="frow"><label>Source</label><select id="fsr">${SOURCES.map(s=>`<option value="${s}" ${(d.source||'Carte bancaire')===s?'selected':''}>${s}</option>`).join('')}</select></div>
-      <div class="frow"><label>Acheteur (CB)</label><select id="fa"><option value="Moi" ${(d.acheteur||'Moi')==='Moi'?'selected':''}>Moi</option><option value="Copine" ${d.acheteur==='Copine'?'selected':''}>Copine</option></select></div>
+  <div class="frow" id="fv-row" style="${vtype==='perso'?'display:none':''}"><label>Versement (€) *</label><input id="fv" type="number" step="0.01" value="${d.versement||''}" oninput="act()"></div>
+  <div class="frow"><label>Nb versements total</label><input id="ft" type="number" min="1" value="${d.total_inst||4}" oninput="act();toggleVperso()"></div>
+  <div class="frow" id="ftt-row" style="${vtype==='perso'?'display:none':''}"><label>Montant total (€)</label><input id="ftt" type="number" step="0.01" value="${d.montant_total||''}" placeholder="Auto" oninput="this.dataset.m=1"></div>
+  <div class="frow"><label>Versements payés</label><input id="fp" type="number" min="0" value="${d.pays||0}"></div>
+  <div class="frow"><label>Prochaine échéance *</label><input id="fd" type="date" value="${d.due||''}"></div>
+  <div class="frow"><label>Source</label><select id="fsr">${SOURCES.map(s=>`<option value="${s}" ${(d.source||'Carte bancaire')===s?'selected':''}>${s}</option>`).join('')}</select></div>
+  <div class="frow"><label>Acheteur (CB)</label><select id="fa"><option value="Moi" ${(d.acheteur||'Moi')==='Moi'?'selected':''}>Moi</option><option value="Copine" ${d.acheteur==='Copine'?'selected':''}>Copine</option></select></div>
 
-      <div class="frow full"><label>Partage avec ta copine</label>
-        <select id="fpa" onchange="togglePartageType()">
-          <option value="non" ${!d.partage?'selected':''}>Non partagé</option>
-          <option value="50/50" ${d.partage&&ptype==='50/50'?'selected':''}>Partagé 50/50</option>
-          <option value="perso" ${d.partage&&ptype==='perso'?'selected':''}>Partagé personnalisé (montant perso par versement)</option>
-        </select>
-      </div>
+  <div class="frow full"><label>Partage avec ta copine</label>
+    <select id="fpa" onchange="togglePartageType()">
+      <option value="non" ${!d.partage?'selected':''}>Non partagé</option>
+      <option value="50/50" ${d.partage&&ptype==='50/50'?'selected':''}>Partagé 50/50</option>
+      <option value="perso" ${d.partage&&ptype==='perso'?'selected':''}>Partagé personnalisé (montant perso par versement)</option>
+    </select>
+  </div>
 
-      <div class="frow full" id="vperso-container">${vpersoRows}</div>
-      <div class="frow full"><label>Notes</label><input id="fn" value="${d.notes||''}" placeholder="Ex: Vacances..."></div>
-    </div>
-    <div class="macts">
-      <button class="btn" onclick="S.modal=null;render()">Annuler</button>
-      <button class="btn btn-primary" onclick="saveItem(${isE?`'${d.id}'`:'null'})">${isE?'Enregistrer':'Ajouter'}</button>
-    </div>
+  <div class="frow full" id="vperso-container">${vpersoRows}</div>
+  <div class="frow full"><label>Notes</label><input id="fn" value="${d.notes||''}" placeholder="Ex: Vacances..."></div>
+</div>
+<div class="macts">
+  <button class="btn" onclick="S.modal=null;render()">Annuler</button>
+  <button class="btn btn-primary" onclick="saveItem(${isE?`'${d.id}'`:'null'})">${isE?'Enregistrer':'Ajouter'}</button>
+</div>
+```
+
   </div></div>`;
 }
 
 function toggleVperso(){
-  const vtype=document.getElementById('fvtype').value;
-  const nb=parseInt(document.getElementById('ft').value)||4;
-  const ptype=document.getElementById('fpa')?.value||'non';
-  const isPerso=vtype==='perso';
-  document.getElementById('fv-row').style.display=isPerso?'none':'';
-  document.getElementById('ftt-row').style.display=isPerso?'none':'';
-  // Rebuild perso rows
-  const container=document.getElementById('vperso-container');
-  if(isPerso){
-    const showCopine=ptype==='perso';
-    container.innerHTML=`<div class="vperso-section">
-      <h4>Saisir chaque versement${showCopine?' et la part de ta copine':''}</h4>
-      <table class="vperso-table">
-        <thead><tr><th>#</th><th>Montant (€)</th>${showCopine?'<th>Part copine (€)</th>':''}</tr></thead>
-        <tbody>${Array.from({length:nb},(_,i)=>`<tr>
-          <td style="color:#718096;font-weight:600">${i+1}</td>
-          <td><input type="number" step="0.01" id="vp_m_${i}" placeholder="0.00" oninput="updatePersoTotal()"></td>
-          ${showCopine?`<td><input type="number" step="0.01" id="vp_c_${i}" placeholder="0.00"></td>`:''}
-        </tr>`).join('')}</tbody>
-      </table>
-      <div style="margin-top:8px;font-size:12px;color:#718096">Total calculé : <span id="persoTotal" style="font-weight:600;color:#185FA5">0,00 €</span></div>
-    </div>`;
-  } else {
-    container.innerHTML='';
-  }
+const vtype=document.getElementById(‘fvtype’).value;
+const nb=parseInt(document.getElementById(‘ft’).value)||4;
+const ptype=document.getElementById(‘fpa’)?.value||‘non’;
+const isPerso=vtype===‘perso’;
+document.getElementById(‘fv-row’).style.display=isPerso?‘none’:’’;
+document.getElementById(‘ftt-row’).style.display=isPerso?‘none’:’’;
+// Rebuild perso rows
+const container=document.getElementById(‘vperso-container’);
+if(isPerso){
+const showCopine=ptype===‘perso’;
+container.innerHTML=`<div class="vperso-section"> <h4>Saisir chaque versement${showCopine?' et la part de ta copine':''}</h4> <table class="vperso-table"> <thead><tr><th>#</th><th>Montant (€)</th>${showCopine?'<th>Part copine (€)</th>':''}</tr></thead> <tbody>${Array.from({length:nb},(_,i)=>`<tr>
+<td style="color:#718096;font-weight:600">${i+1}</td>
+<td><input type="number" step="0.01" id="vp_m_${i}" placeholder="0.00" oninput="updatePersoTotal()"></td>
+${showCopine?`<td><input type="number" step="0.01" id="vp_c_${i}" placeholder="0.00"></td>`:’’}
+</tr>`).join('')}</tbody> </table> <div style="margin-top:8px;font-size:12px;color:#718096">Total calculé : <span id="persoTotal" style="font-weight:600;color:#185FA5">0,00 €</span></div> </div>`;
+} else {
+container.innerHTML=’’;
+}
 }
 
 function togglePartageType(){
-  const ptype=document.getElementById('fpa').value;
-  const vtype=document.getElementById('fvtype').value;
-  if(vtype==='perso') toggleVperso(); // rebuild table avec/sans colonne copine
+const ptype=document.getElementById(‘fpa’).value;
+const vtype=document.getElementById(‘fvtype’).value;
+if(vtype===‘perso’) toggleVperso(); // rebuild table avec/sans colonne copine
 }
 
 function updatePersoTotal(){
-  const nb=parseInt(document.getElementById('ft').value)||4;
-  let total=0;
-  for(let i=0;i<nb;i++){const el=document.getElementById(`vp_m_${i}`);if(el)total+=parseFloat(el.value)||0;}
-  const el=document.getElementById('persoTotal');
-  if(el)el.textContent=fmt(total);
+const nb=parseInt(document.getElementById(‘ft’).value)||4;
+let total=0;
+for(let i=0;i<nb;i++){const el=document.getElementById(`vp_m_${i}`);if(el)total+=parseFloat(el.value)||0;}
+const el=document.getElementById(‘persoTotal’);
+if(el)el.textContent=fmt(total);
 }
 
 function act(){
-  const v=parseFloat(document.getElementById('fv')?.value)||0;
-  const t=parseInt(document.getElementById('ft')?.value)||0;
-  const el=document.getElementById('ftt');
-  if(el&&v&&t&&!el.dataset.m)el.value=(v*t).toFixed(2);
+const v=parseFloat(document.getElementById(‘fv’)?.value)||0;
+const t=parseInt(document.getElementById(‘ft’)?.value)||0;
+const el=document.getElementById(‘ftt’);
+if(el&&v&&t&&!el.dataset.m)el.value=(v*t).toFixed(2);
 }
 
 // ─── PAY MODAL ────────────────────────────────────────────────────────────────
 function payModal(){
-  const d=S.data.find(x=>x.id===S.payId);if(!d)return'';
-  const c=cmp(d);
-  const cv=c.currentVersement;
-  const cc=c.currentCopine;
-  return`<div class="overlay" onclick="if(event.target===this){S.payId=null;render()}"><div class="modal">
-    <h2>💳 Payer — ${d.marchand}</h2>
-    <div class="psec"><h3>Que voulez-vous payer ?</h3>
-      <div class="popt"><input type="radio" name="pt" id="pt1" value="ech" checked onchange="updPS()">
-        <label for="pt1">Payer la prochaine échéance <b>${fmt(cv)}</b><br><small style="color:#718096">→ Prochaine éch. : ${fd(nextMonth(d.due))}</small></label></div>
-      <div class="popt"><input type="radio" name="pt" id="pt2" value="tot" onchange="updPS()">
-        <label for="pt2">Solder le reste complet <b>${fmt(c.restant)}</b></label></div>
-    </div>
-    ${d.partage?`<div class="psec"><h3>Part de ma copine</h3>
-      <div class="popt"><input type="radio" name="cp" id="cp1" value="non" checked onchange="updPS()"><label for="cp1">Pas encore remboursée</label></div>
-      <div class="popt"><input type="radio" name="cp" id="cp2" value="oui" onchange="updPS()"><label for="cp2">Ma copine a payé sa part <b>${fmt(cc)}</b></label></div>
-    </div>`:''}
-    <div class="psum" id="ps"></div>
-    <div class="macts">
-      <button class="btn" onclick="S.payId=null;render()">Annuler</button>
-      <button class="btn btn-primary" onclick="confirmPay('${d.id}')">✓ Confirmer</button>
-    </div>
+const d=S.data.find(x=>x.id===S.payId);if(!d)return’’;
+const c=cmp(d);
+const cv=c.currentVersement;
+const cc=c.currentCopine;
+return`<div class="overlay" onclick="if(event.target===this){S.payId=null;render()}"><div class="modal"> <h2>💳 Payer — ${d.marchand}</h2> <div class="psec"><h3>Que voulez-vous payer ?</h3> <div class="popt"><input type="radio" name="pt" id="pt1" value="ech" checked onchange="updPS()"> <label for="pt1">Payer la prochaine échéance <b>${fmt(cv)}</b><br><small style="color:#718096">→ Prochaine éch. : ${fd(nextMonth(d.due))}</small></label></div> <div class="popt"><input type="radio" name="pt" id="pt2" value="tot" onchange="updPS()"> <label for="pt2">Solder le reste complet <b>${fmt(c.restant)}</b></label></div> </div> ${d.partage?`<div class="psec"><h3>Part de ma copine</h3>
+<div class="popt"><input type="radio" name="cp" id="cp1" value="non" checked onchange="updPS()"><label for="cp1">Pas encore remboursée</label></div>
+<div class="popt"><input type="radio" name="cp" id="cp2" value="oui" onchange="updPS()"><label for="cp2">Ma copine a payé sa part <b>${fmt(cc)}</b></label></div>
+</div>`:’’}
+<div class="psum" id="ps"></div>
+<div class="macts">
+<button class="btn" onclick="S.payId=null;render()">Annuler</button>
+<button class="btn btn-primary" onclick="confirmPay('${d.id}')">✓ Confirmer</button>
+</div>
+
   </div></div>`;
 }
 
 function updPS(){
-  const d=S.data.find(x=>x.id===S.payId);if(!d)return;
-  const c=cmp(d);
-  const pt=document.querySelector('input[name="pt"]:checked')?.value||'ech';
-  const cpO=d.partage?(document.querySelector('input[name="cp"]:checked')?.value==='oui'):false;
-  const m=pt==='tot'?c.restant:c.currentVersement;
-  const copPart=pt==='tot'?c.partCopine:c.currentCopine;
-  const deb=cpO?m-copPart:m;
-  let h=`<div class="psum-row"><span>Montant</span><span>${fmt(m)}</span></div>`;
-  if(d.partage)h+=`<div class="psum-row"><span>Part copine</span><span>${fmt(copPart)}</span></div><div class="psum-row"><span>Remboursée ?</span><span>${cpO?'✓ Oui':'⏳ Non'}</span></div>`;
-  h+=`<div class="psum-row tot"><span>Je débourse</span><span class="green">${fmt(deb)}</span></div>`;
-  document.getElementById('ps').innerHTML=h;
+const d=S.data.find(x=>x.id===S.payId);if(!d)return;
+const c=cmp(d);
+const pt=document.querySelector(‘input[name=“pt”]:checked’)?.value||‘ech’;
+const cpO=d.partage?(document.querySelector(‘input[name=“cp”]:checked’)?.value===‘oui’):false;
+const m=pt===‘tot’?c.restant:c.currentVersement;
+const copPart=pt===‘tot’?c.partCopine:c.currentCopine;
+const deb=cpO?m-copPart:m;
+let h=`<div class="psum-row"><span>Montant</span><span>${fmt(m)}</span></div>`;
+if(d.partage)h+=`<div class="psum-row"><span>Part copine</span><span>${fmt(copPart)}</span></div><div class="psum-row"><span>Remboursée ?</span><span>${cpO?'✓ Oui':'⏳ Non'}</span></div>`;
+h+=`<div class="psum-row tot"><span>Je débourse</span><span class="green">${fmt(deb)}</span></div>`;
+document.getElementById(‘ps’).innerHTML=h;
 }
 
 function pinModal(){
-  return`<div class="overlay" onclick="if(event.target===this){S.pinModal=false;render()}"><div class="modal">
-    <h2>🔑 Changer le code PIN</h2>
-    <div class="fg"><div class="frow full"><label>Nouveau PIN (4 chiffres)</label><input id="np" type="tel" maxlength="4" placeholder="Ex: 5678"></div></div>
-    <div class="macts">
-      <button class="btn" onclick="S.pinModal=false;render()">Annuler</button>
-      <button class="btn btn-primary" onclick="savePin()">Enregistrer</button>
-    </div>
+return`<div class="overlay" onclick="if(event.target===this){S.pinModal=false;render()}"><div class="modal">
+<h2>🔑 Changer le code PIN</h2>
+<div class="fg"><div class="frow full"><label>Nouveau PIN (4 chiffres)</label><input id="np" type="tel" maxlength="4" placeholder="Ex: 5678"></div></div>
+<div class="macts">
+<button class="btn" onclick="S.pinModal=false;render()">Annuler</button>
+<button class="btn btn-primary" onclick="savePin()">Enregistrer</button>
+</div>
+
   </div></div>`;
 }
 
-function openM(id){S.modal=id||'new';render();}
+function openM(id){S.modal=id||‘new’;render();}
 function openPay(id){S.payId=id;render();setTimeout(updPS,50);}
 
-async function togRemb(id,cur){await sb.from('echeances').update({rembourse:!cur}).eq('id',id);await loadData();render();toast(!cur?'✓ Remboursé':'Annulé');}
-async function delItem(id){if(!confirm('Supprimer ?'))return;await sb.from('echeances').delete().eq('id',id);await loadData();render();toast('Supprimé');}
+async function togRemb(id,cur){await sb.from(‘echeances’).update({rembourse:!cur}).eq(‘id’,id);await loadData();render();toast(!cur?‘✓ Remboursé’:‘Annulé’);}
+async function delItem(id){if(!confirm(‘Supprimer ?’))return;await sb.from(‘echeances’).delete().eq(‘id’,id);await loadData();render();toast(‘Supprimé’);}
 
 async function saveItem(id){
-  const marchand=document.getElementById('fm').value.trim();
-  const pays=parseInt(document.getElementById('fp').value)||0;
-  const total_inst=parseInt(document.getElementById('ft').value)||4;
-  const due=document.getElementById('fd').value;
-  const acheteur=document.getElementById('fa').value;
-  const paVal=document.getElementById('fpa').value;
-  const partage=paVal!=='non';
-  const partage_type=paVal==='non'?'50/50':paVal;
-  const source=document.getElementById('fsr').value;
-  const notes=document.getElementById('fn').value.trim();
-  const versement_type=document.getElementById('fvtype').value;
-  if(!marchand||!due){alert('Champs obligatoires manquants');return;}
+const marchand=document.getElementById(‘fm’).value.trim();
+const pays=parseInt(document.getElementById(‘fp’).value)||0;
+const total_inst=parseInt(document.getElementById(‘ft’).value)||4;
+const due=document.getElementById(‘fd’).value;
+const acheteur=document.getElementById(‘fa’).value;
+const paVal=document.getElementById(‘fpa’).value;
+const partage=paVal!==‘non’;
+const partage_type=paVal===‘non’?‘50/50’:paVal;
+const source=document.getElementById(‘fsr’).value;
+const notes=document.getElementById(‘fn’).value.trim();
+const versement_type=document.getElementById(‘fvtype’).value;
+if(!marchand||!due){alert(‘Champs obligatoires manquants’);return;}
 
-  let versement=0,montant_total=0,versements_perso=null;
+let versement=0,montant_total=0,versements_perso=null;
 
-  if(versement_type==='perso'){
-    // Collect versements perso
-    const showCopine=partage&&partage_type==='perso';
-    versements_perso=[];
-    let tot=0;
-    for(let i=0;i<total_inst;i++){
-      const m=parseFloat(document.getElementById(`vp_m_${i}`)?.value)||0;
-      const c=showCopine?(parseFloat(document.getElementById(`vp_c_${i}`)?.value)||0):0;
-      versements_perso.push({montant:m,copine_montant:c});
-      tot+=m;
-    }
-    montant_total=tot;
-    versement=versements_perso[0]?.montant||0; // premier versement comme référence
-  } else {
-    versement=parseFloat(document.getElementById('fv').value)||0;
-    if(!versement){alert('Montant du versement manquant');return;}
-    const mr=document.getElementById('ftt').value;
-    montant_total=mr?parseFloat(mr):versement*total_inst;
-  }
+if(versement_type===‘perso’){
+// Collect versements perso
+const showCopine=partage&&partage_type===‘perso’;
+versements_perso=[];
+let tot=0;
+for(let i=0;i<total_inst;i++){
+const m=parseFloat(document.getElementById(`vp_m_${i}`)?.value)||0;
+const c=showCopine?(parseFloat(document.getElementById(`vp_c_${i}`)?.value)||0):0;
+versements_perso.push({montant:m,copine_montant:c});
+tot+=m;
+}
+montant_total=tot;
+versement=versements_perso[0]?.montant||0; // premier versement comme référence
+} else {
+versement=parseFloat(document.getElementById(‘fv’).value)||0;
+if(!versement){alert(‘Montant du versement manquant’);return;}
+const mr=document.getElementById(‘ftt’).value;
+montant_total=mr?parseFloat(mr):versement*total_inst;
+}
 
-  const item={marchand,versement,montant_total,versement_type,versements_perso,pays,total_inst,due,acheteur,partage,partage_type,source,notes};
-  if(id!==null){await sb.from('echeances').update(item).eq('id',id);toast('Modifié ✓');}
-  else{await sb.from('echeances').insert({...item,rembourse:false});toast('Ajouté ✓');}
-  await loadData();S.modal=null;render();
+const item={marchand,versement,montant_total,versement_type,versements_perso,pays,total_inst,due,acheteur,partage,partage_type,source,notes};
+if(id!==null){await sb.from(‘echeances’).update(item).eq(‘id’,id);toast(‘Modifié ✓’);}
+else{await sb.from(‘echeances’).insert({…item,rembourse:false});toast(‘Ajouté ✓’);}
+await loadData();S.modal=null;render();
 }
 
 async function confirmPay(id){
-  const d=S.data.find(x=>x.id===id);if(!d)return;
-  const c=cmp(d);
-  const pt=document.querySelector('input[name="pt"]:checked')?.value||'ech';
-  const cpO=d.partage?(document.querySelector('input[name="cp"]:checked')?.value==='oui'):false;
-  const today=new Date().toISOString().split('T')[0];
-  let u={last_paid_date:today};
-  if(pt==='tot'){
-    u.pays=d.total_inst;
-    if(cpO)u.rembourse=true;
-  } else {
-    u.pays=d.pays+1;
-    u.due=nextMonth(d.due); // ← passage automatique au mois suivant
-    if(d.partage) u.rembourse=cpO?true:false;
-  }
-  await sb.from('echeances').update(u).eq('id',id);
-  await loadData();S.payId=null;render();
-  toast('Payé ✓ — Prochaine éch. : '+fd(u.due||d.due));
+const d=S.data.find(x=>x.id===id);if(!d)return;
+const c=cmp(d);
+const pt=document.querySelector(‘input[name=“pt”]:checked’)?.value||‘ech’;
+const cpO=d.partage?(document.querySelector(‘input[name=“cp”]:checked’)?.value===‘oui’):false;
+const today=new Date().toISOString().split(‘T’)[0];
+let u={last_paid_date:today};
+if(pt===‘tot’){
+u.pays=d.total_inst;
+if(cpO)u.rembourse=true;
+} else {
+u.pays=d.pays+1;
+u.due=nextMonth(d.due); // ← passage automatique au mois suivant
+if(d.partage) u.rembourse=cpO?true:false;
+}
+await sb.from(‘echeances’).update(u).eq(‘id’,id);
+await loadData();S.payId=null;render();
+toast(’Payé ✓ — Prochaine éch. : ’+fd(u.due||d.due));
 }
 
 async function savePin(){
-  const v=document.getElementById('np').value.trim();
-  if(!/^\d{4}$/.test(v)){alert('4 chiffres requis');return;}
-  await sb.from('app_config').upsert({key:'pin',value:v});
-  cp=v;S.pinModal=false;render();toast('PIN mis à jour ✓');
+const v=document.getElementById(‘np’).value.trim();
+if(!/^\d{4}$/.test(v)){alert(‘4 chiffres requis’);return;}
+await sb.from(‘app_config’).upsert({key:‘pin’,value:v});
+cp=v;S.pinModal=false;render();toast(‘PIN mis à jour ✓’);
 }
 
-function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+function toast(msg){const t=document.createElement(‘div’);t.className=‘toast’;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
 async function init(){await loadData();render();}
 loadPin();
 </script>
+
 </body>
 </html>
