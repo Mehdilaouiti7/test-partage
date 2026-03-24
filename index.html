@@ -15,13 +15,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #90b8d8;transition:background .15s}
 .pin-dot.filled{background:#fff;border-color:#fff}
 .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:240px}
-.pin-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-size:22px;font-weight:500;padding:18px;cursor:pointer;transition:background .15s;font-family:inherit}
+.pin-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-size:22px;font-weight:500;padding:18px;cursor:pointer;transition:background .15s;font-family:inherit}
 .pin-btn:hover{background:rgba(255,255,255,.25)}
-.pin-error{color:#F09595;font-size:13px;min-height:18px}
+.pin-error{color:#F09595;font-size:13px;min-height:18px;text-align:center}
 .app{max-width:1150px;margin:0 auto;padding:1rem}
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
-.topbar h1{font-size:18px;font-weight:600}
-.topbar h1 span{color:#185FA5}
+.topbar h1{font-size:18px;font-weight:600}.topbar h1 span{color:#185FA5}
 .topbar-right{display:flex;gap:6px;align-items:center}
 .btn{padding:7px 13px;border-radius:8px;border:1px solid #cbd5e0;background:#fff;color:#1a202c;font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap}
 .btn:hover{background:#f7fafc}
@@ -29,30 +28,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-primary:hover{background:#0C447C}
 .btn-danger{color:#A32D2D;border-color:#F09595}
 .btn-danger:hover{background:#FCEBEB}
-.btn-pay{background:#276749;color:#fff;border-color:#276749;padding:4px 10px;font-size:11px;border-radius:6px}
+.btn-pay{background:#276749;color:#fff;border-color:#276749;padding:5px 11px;font-size:12px;border-radius:6px;cursor:pointer;font-family:inherit;border:none}
 .btn-pay:hover{background:#1e4f37}
-.btn-pay:disabled{background:#cbd5e0;border-color:#cbd5e0;cursor:not-allowed}
+.btn-pay:disabled{background:#a0aec0;cursor:not-allowed}
 .btn-sm{padding:4px 9px;font-size:11px}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:1rem}
 .kpi{background:#fff;border-radius:10px;padding:.75rem 1rem;border:1px solid #e2e8f0;text-align:center}
 .kpi-label{font-size:10px;color:#718096;margin-bottom:3px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
 .kpi-val{font-size:17px;font-weight:700}
-.kpi-val.blue{color:#185FA5}.kpi-val.green{color:#276749}.kpi-val.red{color:#A32D2D}.kpi-val.amber{color:#854F0B}.kpi-val.purple{color:#534AB7}.kpi-val.teal{color:#0F6E56}
+.blue{color:#185FA5}.green{color:#276749}.red{color:#A32D2D}.amber{color:#854F0B}.purple{color:#534AB7}
 .month-box{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem;margin-bottom:1rem}
-.month-box h2{font-size:13px;font-weight:600;margin-bottom:.75rem;color:#1a202c;display:flex;align-items:center;gap:6px}
-.month-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.month-box-title{font-size:13px;font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:6px}
+.month-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .month-col h3{font-size:12px;font-weight:600;margin-bottom:.5rem;padding-bottom:5px;border-bottom:1px solid #f0f4f8}
-.month-item{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #f7fafc}
+.month-item{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid #f7fafc}
 .month-item:last-child{border-bottom:none}
-.month-item-left{color:#4a5568}
-.month-item-right{font-weight:600}
 .month-total{display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding-top:6px;margin-top:4px;border-top:1px solid #e2e8f0}
 .alerts{margin-bottom:1rem}
 .alert{padding:8px 12px;border-radius:8px;margin-bottom:5px;font-size:12px;border-left:3px solid;display:flex;align-items:center;gap:8px}
 .alert.urgent{background:#FAECE7;border-color:#D85A30;color:#4A1B0C}
 .alert.warn{background:#FAEEDA;border-color:#BA7517;color:#412402}
-.alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.alert.urgent .alert-dot{background:#D85A30}.alert.warn .alert-dot{background:#BA7517}
+.alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:currentColor}
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-bottom:1rem}
 .summary-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:.9rem}
 .summary-card h3{font-size:12px;font-weight:600;margin-bottom:.5rem;padding-bottom:5px;border-bottom:1px solid #f0f4f8}
@@ -72,8 +68,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-notes{font-size:11px;color:#a0aec0;margin-top:1px}
 .card-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px}
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
-.card-item-label{color:#a0aec0;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
-.card-item-val{font-weight:600;font-size:13px;margin-top:1px}
+.clabel{color:#a0aec0;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+.cval{font-weight:600;font-size:13px;margin-top:1px}
 .card-progress{margin-bottom:8px}
 .progress-bar{height:4px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-top:2px}
 .progress-fill{height:100%;border-radius:4px}
@@ -85,46 +81,44 @@ td{padding:8px 10px;border-bottom:1px solid #f0f4f8;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#f7fafc;cursor:pointer}
 .badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
-.badge-moi{background:#E6F1FB;color:#0C447C}
-.badge-copine{background:#FAEEDA;color:#633806}
-.badge-partage{background:#EAF3DE;color:#27500A}
-.badge-urgent{background:#FAECE7;color:#4A1B0C}
-.badge-ok{background:#EAF3DE;color:#173404}
-.badge-late{background:#FCEBEB;color:#501313}
-.badge-done{background:#E1F5EE;color:#04342C}
-.badge-source{background:#f7fafc;color:#4a5568;border:1px solid #e2e8f0}
-.remb-btn{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;font-family:inherit;white-space:nowrap}
+.b-moi{background:#E6F1FB;color:#0C447C}
+.b-copine{background:#FAEEDA;color:#633806}
+.b-partage{background:#EAF3DE;color:#27500A}
+.b-urgent{background:#FAECE7;color:#4A1B0C}
+.b-ok{background:#EAF3DE;color:#173404}
+.b-late{background:#FCEBEB;color:#501313}
+.b-done{background:#E1F5EE;color:#04342C}
+.b-src{background:#f7fafc;color:#4a5568;border:1px solid #e2e8f0}
+.remb-btn{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid;font-family:inherit;white-space:nowrap}
 .remb-non{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
 .remb-oui{background:#EAF3DE;color:#3B6D11;border-color:#97C459}
-.actions-cell{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.acts{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-start;justify-content:center;z-index:100;padding:1rem;overflow-y:auto}
 .modal{background:#fff;border-radius:16px;padding:1.4rem;width:100%;max-width:520px;border:1px solid #e2e8f0;margin:auto}
 .modal h2{font-size:16px;font-weight:600;margin-bottom:1rem}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.form-group{display:flex;flex-direction:column;gap:4px}
-.form-group.full{grid-column:1/-1}
-.form-group label{font-size:11px;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.form-group input,.form-group select{padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#1a202c;font-size:13px;font-family:inherit}
-.form-group input:focus,.form-group select:focus{outline:none;border-color:#185FA5}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;padding-top:.9rem;border-top:1px solid #f0f4f8}
-.pay-section{background:#f7fafc;border-radius:10px;padding:.9rem;margin-bottom:.9rem}
-.pay-section h3{font-size:13px;font-weight:600;margin-bottom:.65rem}
-.pay-option{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #e2e8f0;cursor:pointer}
-.pay-option:last-child{border-bottom:none}
-.pay-option input[type=radio]{width:16px;height:16px;cursor:pointer;accent-color:#185FA5}
-.pay-option label{font-size:13px;cursor:pointer;flex:1}
-.pay-option label span{font-weight:600;color:#185FA5}
-.pay-summary{background:#EAF3DE;border-radius:8px;padding:.75rem;margin-top:.75rem;font-size:12px}
-.pay-summary-row{display:flex;justify-content:space-between;padding:2px 0}
-.pay-summary-row.total{font-weight:700;border-top:1px solid #C0DD97;margin-top:5px;padding-top:6px;font-size:13px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.frow{display:flex;flex-direction:column;gap:4px}
+.frow.full{grid-column:1/-1}
+.frow label{font-size:11px;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.frow input,.frow select{padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#1a202c;font-size:13px;font-family:inherit}
+.frow input:focus,.frow select:focus{outline:none;border-color:#185FA5}
+.macts{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;padding-top:.9rem;border-top:1px solid #f0f4f8}
+.psec{background:#f7fafc;border-radius:10px;padding:.9rem;margin-bottom:.9rem}
+.psec h3{font-size:13px;font-weight:600;margin-bottom:.65rem}
+.popt{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #e2e8f0;cursor:pointer}
+.popt:last-child{border-bottom:none}
+.popt input[type=radio]{width:16px;height:16px;cursor:pointer;accent-color:#185FA5}
+.popt label{font-size:13px;cursor:pointer;flex:1}
+.popt label b{color:#185FA5}
+.psum{background:#EAF3DE;border-radius:8px;padding:.75rem;margin-top:.75rem;font-size:12px}
+.psum-row{display:flex;justify-content:space-between;padding:2px 0}
+.psum-row.tot{font-weight:700;border-top:1px solid #C0DD97;margin-top:5px;padding-top:6px;font-size:13px}
 .empty{text-align:center;padding:2rem;color:#a0aec0;font-size:13px}
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid #e2e8f0;border-top-color:#185FA5;border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
-.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a202c;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;z-index:500;animation:fadeUp .2s ease;white-space:nowrap}
-@keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a202c;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;z-index:500;animation:fu .2s ease;white-space:nowrap;pointer-events:none}
+@keyframes fu{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @media(min-width:768px){.cards-list{display:none}.table-wrap{display:block}}
 @media(max-width:767px){.table-wrap{display:none}.cards-list{display:flex}}
-@media(max-width:480px){.form-grid{grid-template-columns:1fr}.form-group.full{grid-column:1}.month-cols{grid-template-columns:1fr}}
+@media(max-width:480px){.fg{grid-template-columns:1fr}.frow.full{grid-column:1}.month-cols{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -137,382 +131,399 @@ tr:hover td{background:#f7fafc;cursor:pointer}
   </div>
   <div class="pin-error" id="pinError"></div>
   <div class="pin-pad">
-    <button class="pin-btn" onclick="pinInput('1')">1</button>
-    <button class="pin-btn" onclick="pinInput('2')">2</button>
-    <button class="pin-btn" onclick="pinInput('3')">3</button>
-    <button class="pin-btn" onclick="pinInput('4')">4</button>
-    <button class="pin-btn" onclick="pinInput('5')">5</button>
-    <button class="pin-btn" onclick="pinInput('6')">6</button>
-    <button class="pin-btn" onclick="pinInput('7')">7</button>
-    <button class="pin-btn" onclick="pinInput('8')">8</button>
-    <button class="pin-btn" onclick="pinInput('9')">9</button>
-    <button class="pin-btn" style="visibility:hidden"></button>
-    <button class="pin-btn" onclick="pinInput('0')">0</button>
-    <button class="pin-btn" onclick="pinDel()">⌫</button>
+    <button class="pin-btn" onclick="pi('1')">1</button><button class="pin-btn" onclick="pi('2')">2</button><button class="pin-btn" onclick="pi('3')">3</button>
+    <button class="pin-btn" onclick="pi('4')">4</button><button class="pin-btn" onclick="pi('5')">5</button><button class="pin-btn" onclick="pi('6')">6</button>
+    <button class="pin-btn" onclick="pi('7')">7</button><button class="pin-btn" onclick="pi('8')">8</button><button class="pin-btn" onclick="pi('9')">9</button>
+    <button class="pin-btn" style="visibility:hidden"></button><button class="pin-btn" onclick="pi('0')">0</button><button class="pin-btn" onclick="pd()">⌫</button>
   </div>
 </div>
 <div class="app" id="appScreen" style="display:none"></div>
 <script>
-const SUPABASE_URL='https://mqfyuprpztiyfpleannt.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZnl1cHJwenRpeWZwbGVhbm50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMjg3MjUsImV4cCI6MjA4OTkwNDcyNX0.4Fvc-fNlwhVp0HvOEL-Z92i9W4YvVSAgen0ihBzlGOk';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const SB_URL='https://mqfyuprpztiyfpleannt.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZnl1cHJwenRpeWZwbGVhbm50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMjg3MjUsImV4cCI6MjA4OTkwNDcyNX0.4Fvc-fNlwhVp0HvOEL-Z92i9W4YvVSAgen0ihBzlGOk';
+const sb=supabase.createClient(SB_URL,SB_KEY);
 const SOURCES=['PayPal','Oney','Cofidis','Carte bancaire','Virement','Prélèvement','Autre'];
 
-let pinValue='',correctPin='1234';
-async function loadPin(){const{data}=await sb.from('app_config').select('value').eq('key','pin').single();if(data)correctPin=data.value;}
-function pinInput(n){if(pinValue.length>=4)return;pinValue+=n;updatePinDots();if(pinValue.length===4)checkPin();}
-function pinDel(){pinValue=pinValue.slice(0,-1);updatePinDots();document.getElementById('pinError').textContent='';}
-function updatePinDots(){for(let i=0;i<4;i++)document.getElementById('d'+i).className='pin-dot'+(i<pinValue.length?' filled':'');}
-async function checkPin(){await loadPin();if(pinValue===correctPin){document.getElementById('pinScreen').style.display='none';document.getElementById('appScreen').style.display='block';initApp();}else{document.getElementById('pinError').textContent='Code incorrect';pinValue='';updatePinDots();}}
+// PIN
+let pv='',cp='1234';
+async function loadPin(){const{data}=await sb.from('app_config').select('value').eq('key','pin').single();if(data)cp=data.value;}
+function pi(n){if(pv.length>=4)return;pv+=n;upd();if(pv.length===4)chk();}
+function pd(){pv=pv.slice(0,-1);upd();document.getElementById('pinError').textContent='';}
+function upd(){for(let i=0;i<4;i++)document.getElementById('d'+i).className='pin-dot'+(i<pv.length?' filled':'');}
+async function chk(){await loadPin();if(pv===cp){document.getElementById('pinScreen').style.display='none';document.getElementById('appScreen').style.display='block';init();}else{document.getElementById('pinError').textContent='Code incorrect';pv='';upd();}}
 
-let state={data:[],tab:'all',filterAcheteur:'tous',filterSource:'tous',filterSearch:'',modal:null,payModal:null,pinChangeModal:false};
+// STATE
+let S={data:[],tab:'all',fa:'tous',fs:'tous',fq:'',modal:null,payId:null,pinModal:false};
 
-async function loadData(){const{data,error}=await sb.from('echeances').select('*').order('due');if(!error)state.data=data||[];}
+async function loadData(){const{data}=await sb.from('echeances').select('*').order('due');S.data=data||[];}
+
 function fmt(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
-function addMonths(s,n){const d=new Date(s);d.setMonth(d.getMonth()+n);return d.toISOString().split('T')[0];}
 
-function computed(d){
-  const restants=d.total_inst-d.pays;
+function nextMonth(s){
+  // Ajoute exactement 1 mois à la date donnée
+  const d=new Date(s+'T12:00:00');
+  d.setMonth(d.getMonth()+1);
+  return d.toISOString().split('T')[0];
+}
+
+function cmp(d){
+  const rest=d.total_inst-d.pays;
   const total=d.montant_total||(d.versement*d.total_inst);
   const deja=d.versement*d.pays;
-  const restant=d.versement*restants;
+  const restant=d.versement*rest;
   const partCopine=(d.partage&&!d.rembourse)?restant/2:0;
   const today=new Date();today.setHours(0,0,0,0);
-  const due=new Date(d.due);
+  const due=new Date(d.due+'T12:00:00');
   const jours=Math.round((due-today)/86400000);
-  const statut=restants===0?'soldé':jours<0?'retard':jours<=7?'urgent':'ok';
-  const lastPaid=d.last_paid_date?new Date(d.last_paid_date):null;
-  const nowKey=new Date().getMonth()+'-'+new Date().getFullYear();
-  const paidKey=lastPaid?(lastPaid.getMonth()+'-'+lastPaid.getFullYear()):null;
-  const payDisabled=(paidKey===nowKey)||restants===0;
-  return{restants,total,deja,restant,partCopine,jours,statut,payDisabled};
+  const statut=rest===0?'soldé':jours<0?'retard':jours<=7?'urgent':'ok';
+  // Bouton payer grisé si payé ce mois OU soldé
+  const lp=d.last_paid_date?new Date(d.last_paid_date+'T12:00:00'):null;
+  const nowKey=`${new Date().getMonth()}-${new Date().getFullYear()}`;
+  const lpKey=lp?`${lp.getMonth()}-${lp.getFullYear()}`:'';
+  const payDis=(lpKey===nowKey)||rest===0;
+  return{rest,total,deja,restant,partCopine,jours,statut,payDis};
 }
 
-function currentMonthData(){
+function monthData(){
   const now=new Date();
   const y=now.getFullYear(),m=now.getMonth();
-  const start=new Date(y,m,1),end=new Date(y,m+1,0);
-  const moi=[],copine=[];
-  state.data.forEach(d=>{
-    const due=new Date(d.due);
-    const c=computed(d);
+  const s=new Date(y,m,1),e=new Date(y,m+1,0);
+  const moi=[],cop=[];
+  S.data.forEach(d=>{
+    const c=cmp(d);
     if(c.statut==='soldé')return;
-    if(due>=start&&due<=end){
-      const item={marchand:d.marchand,montant:d.versement,partage:d.partage,acheteur:d.acheteur};
-      if(d.acheteur==='Moi'||d.partage){
-        const maMontant=d.partage?d.versement/2:d.versement;
-        moi.push({...item,maMontant});
-      }
-      if(d.acheteur==='Copine'||d.partage){
-        const copMontant=d.partage?d.versement/2:d.versement;
-        copine.push({...item,copMontant});
-      }
+    const due=new Date(d.due+'T12:00:00');
+    if(due>=s&&due<=e){
+      if(d.acheteur==='Moi'||d.partage)moi.push({n:d.marchand,m:d.partage?d.versement/2:d.versement,p:d.partage});
+      if(d.acheteur==='Copine'||d.partage)cop.push({n:d.marchand,m:d.partage?d.versement/2:d.versement,p:d.partage});
     }
   });
-  return{moi,copine};
+  return{moi,cop};
 }
 
-function filteredData(){
+function filtered(){
   const today=new Date();today.setHours(0,0,0,0);
-  return state.data.filter(d=>{
-    const c=computed(d);const due=new Date(d.due);
-    if(state.tab==='upcoming'&&due<today&&c.statut!=='retard')return false;
-    if(state.tab==='past'&&due>=today)return false;
-    const fa=state.filterAcheteur;
-    if(fa==='moi_tout'&&!(d.acheteur==='Moi'))return false;
-    if(fa==='copine_tout'&&!(d.acheteur==='Copine'))return false;
-    if(fa==='partage'&&!d.partage)return false;
+  return S.data.filter(d=>{
+    const c=cmp(d);const due=new Date(d.due+'T12:00:00');
+    if(S.tab==='upcoming'&&due<today&&c.statut!=='retard')return false;
+    if(S.tab==='past'&&due>=today)return false;
+    const fa=S.fa;
+    if(fa==='moi_all'&&d.acheteur!=='Moi')return false;
     if(fa==='moi_solo'&&!(d.acheteur==='Moi'&&!d.partage))return false;
-    if(fa==='copine_solo'&&!(d.acheteur==='Copine'&&!d.partage))return false;
-    if(state.filterSource!=='tous'&&d.source!==state.filterSource)return false;
-    if(state.filterSearch&&!d.marchand.toLowerCase().includes(state.filterSearch.toLowerCase())&&!(d.notes||'').toLowerCase().includes(state.filterSearch.toLowerCase()))return false;
+    if(fa==='cop_all'&&d.acheteur!=='Copine')return false;
+    if(fa==='cop_solo'&&!(d.acheteur==='Copine'&&!d.partage))return false;
+    if(fa==='partage'&&!d.partage)return false;
+    if(S.fs!=='tous'&&d.source!==S.fs)return false;
+    if(S.fq&&!d.marchand.toLowerCase().includes(S.fq.toLowerCase())&&!(d.notes||'').toLowerCase().includes(S.fq.toLowerCase()))return false;
     return true;
   }).sort((a,b)=>new Date(a.due)-new Date(b.due));
 }
 
 function kpis(){
   let te=0,tr=0,tp=0,mr=0,cr=0;
-  state.data.forEach(d=>{const c=computed(d);te+=c.total;tr+=c.restant;if(d.partage)tp+=c.partCopine;if(d.acheteur==='Moi')mr+=d.partage?c.restant/2:c.restant;if(d.acheteur==='Copine')cr+=c.restant;});
+  S.data.forEach(d=>{const c=cmp(d);te+=c.total;tr+=c.restant;if(d.partage)tp+=c.partCopine;if(d.acheteur==='Moi')mr+=d.partage?c.restant/2:c.restant;if(d.acheteur==='Copine')cr+=c.restant;});
   return{te,tr,tp,mr,cr};
 }
-function fmtDate(s){return new Date(s).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});}
-function fmtDateFull(s){return new Date(s).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});}
+
+function fd(s){return new Date(s+'T12:00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});}
+function fdf(s){return new Date(s+'T12:00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});}
 function monthName(){return new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});}
-function statutBadge(s){const m={soldé:['badge-done','Soldé'],retard:['badge-late','Retard'],urgent:['badge-urgent','Urgent'],ok:['badge-ok','OK']};const[c,t]=m[s];return`<span class="badge ${c}">${t}</span>`;}
-function acheteurBadge(d){if(d.partage)return`<span class="badge badge-partage">Partagé</span>`;if(d.acheteur==='Copine')return`<span class="badge badge-copine">Copine</span>`;return`<span class="badge badge-moi">Moi</span>`;}
-function jourstxt(j){if(j<0)return`<span style="color:#A32D2D;font-weight:700">${Math.abs(j)}j</span>`;if(j===0)return`<span style="color:#D85A30;font-weight:700">Auj.</span>`;if(j<=7)return`<span style="color:#D85A30;font-weight:600">${j}j</span>`;return`<span style="color:#718096">${j}j</span>`;}
+
+function sBadge(s){const m={soldé:['b-done','Soldé'],retard:['b-late','Retard'],urgent:['b-urgent','Urgent'],ok:['b-ok','OK']};const[c,t]=m[s];return`<span class="badge ${c}">${t}</span>`;}
+function aBadge(d){if(d.partage)return`<span class="badge b-partage">Partagé</span>`;if(d.acheteur==='Copine')return`<span class="badge b-copine">Copine</span>`;return`<span class="badge b-moi">Moi</span>`;}
+function jt(j){if(j<0)return`<span class="red" style="font-weight:700">${Math.abs(j)}j</span>`;if(j===0)return`<span style="color:#D85A30;font-weight:700">Auj.</span>`;if(j<=7)return`<span style="color:#D85A30;font-weight:600">${j}j</span>`;return`<span style="color:#718096">${j}j</span>`;}
 
 function render(){
   const k=kpis();
-  const al=state.data.filter(d=>{const c=computed(d);return c.statut==='urgent'||c.statut==='retard';}).sort((a,b)=>new Date(a.due)-new Date(b.due));
-  const rows=filteredData();
-  const cm=currentMonthData();
-  const totalMoi=cm.moi.reduce((s,i)=>s+i.maMontant,0);
-  const totalCopine=cm.copine.reduce((s,i)=>s+i.copMontant,0);
+  const al=S.data.filter(d=>{const c=cmp(d);return c.statut==='urgent'||c.statut==='retard';}).sort((a,b)=>new Date(a.due)-new Date(b.due));
+  const rows=filtered();
+  const md=monthData();
+  const tmoi=md.moi.reduce((s,i)=>s+i.m,0);
+  const tcop=md.cop.reduce((s,i)=>s+i.m,0);
   let sm={e:0,d:0,r:0},sc={e:0,d:0,r:0},sp={e:0,d:0,r:0,a:0};
-  state.data.forEach(d=>{const c=computed(d);if(d.partage){sp.e+=c.total;sp.d+=c.deja;sp.r+=c.restant;sp.a+=c.partCopine;}else if(d.acheteur==='Moi'){sm.e+=c.total;sm.d+=c.deja;sm.r+=c.restant;}else{sc.e+=c.total;sc.d+=c.deja;sc.r+=c.restant;}});
+  S.data.forEach(d=>{const c=cmp(d);if(d.partage){sp.e+=c.total;sp.d+=c.deja;sp.r+=c.restant;sp.a+=c.partCopine;}else if(d.acheteur==='Moi'){sm.e+=c.total;sm.d+=c.deja;sm.r+=c.restant;}else{sc.e+=c.total;sc.d+=c.deja;sc.r+=c.restant;}});
 
-  document.getElementById('appScreen').innerHTML=`
-    <div class="topbar">
-      <h1>Mes <span>échéances</span></h1>
-      <div class="topbar-right">
-        <button class="btn" onclick="openPinChange()" style="font-size:11px">🔑 PIN</button>
-        <button class="btn btn-primary" onclick="openModal(null)">+ Ajouter</button>
-      </div>
+  const html=`
+<div class="topbar">
+  <h1>Mes <span>échéances</span></h1>
+  <div class="topbar-right">
+    <button class="btn" onclick="S.pinModal=true;render()" style="font-size:11px">🔑 PIN</button>
+    <button class="btn btn-primary" onclick="openM(null)">+ Ajouter</button>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="kpi-label">Total engagé</div><div class="kpi-val blue">${fmt(k.te)}</div></div>
+  <div class="kpi"><div class="kpi-label">Reste à payer</div><div class="kpi-val red">${fmt(k.tr)}</div></div>
+  <div class="kpi"><div class="kpi-label">Ma part</div><div class="kpi-val blue">${fmt(k.mr)}</div></div>
+  <div class="kpi"><div class="kpi-label">Part copine</div><div class="kpi-val amber">${fmt(k.cr)}</div></div>
+  <div class="kpi"><div class="kpi-label">À récupérer</div><div class="kpi-val purple">${fmt(k.tp)}</div></div>
+</div>
+
+<div class="month-box">
+  <div class="month-box-title">📅 Ce mois — ${monthName()}</div>
+  <div class="month-cols">
+    <div>
+      <h3 class="blue">👤 Moi à payer</h3>
+      ${md.moi.length===0?'<div style="font-size:12px;color:#a0aec0">Rien ce mois</div>':md.moi.map(i=>`<div class="month-item"><span style="color:#4a5568">${i.n}${i.p?' <small style="color:#27500A">(50%)</small>':''}</span><span class="blue" style="font-weight:600">${fmt(i.m)}</span></div>`).join('')}
+      ${md.moi.length>0?`<div class="month-total"><span>Total</span><span class="blue">${fmt(tmoi)}</span></div>`:''}
     </div>
-
-    <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-label">Total engagé</div><div class="kpi-val blue">${fmt(k.te)}</div></div>
-      <div class="kpi"><div class="kpi-label">Reste à payer</div><div class="kpi-val red">${fmt(k.tr)}</div></div>
-      <div class="kpi"><div class="kpi-label">Ma part</div><div class="kpi-val blue">${fmt(k.mr)}</div></div>
-      <div class="kpi"><div class="kpi-label">Part copine</div><div class="kpi-val amber">${fmt(k.cr)}</div></div>
-      <div class="kpi"><div class="kpi-label">À récupérer</div><div class="kpi-val purple">${fmt(k.tp)}</div></div>
+    <div>
+      <h3 class="amber">💑 Copine à payer</h3>
+      ${md.cop.length===0?'<div style="font-size:12px;color:#a0aec0">Rien ce mois</div>':md.cop.map(i=>`<div class="month-item"><span style="color:#4a5568">${i.n}${i.p?' <small style="color:#27500A">(50%)</small>':''}</span><span class="amber" style="font-weight:600">${fmt(i.m)}</span></div>`).join('')}
+      ${md.cop.length>0?`<div class="month-total"><span>Total</span><span class="amber">${fmt(tcop)}</span></div>`:''}
     </div>
+  </div>
+</div>
 
-    <!-- MOIS COURANT -->
-    <div class="month-box">
-      <h2>📅 Ce mois — ${monthName()}</h2>
-      <div class="month-cols">
-        <div class="month-col">
-          <h3 style="color:#0C447C">👤 Moi à payer</h3>
-          ${cm.moi.length===0?'<div style="font-size:12px;color:#a0aec0">Rien ce mois</div>':cm.moi.map(i=>`
-            <div class="month-item">
-              <span class="month-item-left">${i.marchand}${i.partage?' <span style="font-size:10px;color:#27500A">(50%)</span>':''}</span>
-              <span class="month-item-right" style="color:#185FA5">${fmt(i.maMontant)}</span>
-            </div>`).join('')}
-          ${cm.moi.length>0?`<div class="month-total"><span>Total</span><span style="color:#185FA5">${fmt(totalMoi)}</span></div>`:''}
-        </div>
-        <div class="month-col">
-          <h3 style="color:#633806">💑 Copine à payer</h3>
-          ${cm.copine.length===0?'<div style="font-size:12px;color:#a0aec0">Rien ce mois</div>':cm.copine.map(i=>`
-            <div class="month-item">
-              <span class="month-item-left">${i.marchand}${i.partage?' <span style="font-size:10px;color:#27500A">(50%)</span>':''}</span>
-              <span class="month-item-right" style="color:#854F0B">${fmt(i.copMontant)}</span>
-            </div>`).join('')}
-          ${cm.copine.length>0?`<div class="month-total"><span>Total</span><span style="color:#854F0B">${fmt(totalCopine)}</span></div>`:''}
-        </div>
-      </div>
+${al.length?`<div class="alerts">${al.map(d=>{const c=cmp(d);const cls=c.statut==='retard'?'urgent':'warn';const txt=c.statut==='retard'?`${Math.abs(c.jours)}j retard`:`${c.jours}j`;return`<div class="alert ${cls}"><div class="alert-dot"></div><strong>${d.marchand}</strong> — ${fd(d.due)} — ${fmt(d.versement)} — ${txt}</div>`;}).join('')}</div>`:''}
+
+<div class="summary-grid">
+  <div class="summary-card"><h3 class="blue">👤 Moi (solo)</h3><div class="summary-row"><span>Total</span><span>${fmt(sm.e)}</span></div><div class="summary-row"><span>Payé</span><span class="green">${fmt(sm.d)}</span></div><div class="summary-row"><span>Reste</span><span class="red">${fmt(sm.r)}</span></div></div>
+  <div class="summary-card"><h3 class="amber">💑 Copine (solo)</h3><div class="summary-row"><span>Total</span><span>${fmt(sc.e)}</span></div><div class="summary-row"><span>Payé</span><span class="green">${fmt(sc.d)}</span></div><div class="summary-row"><span>Reste</span><span class="red">${fmt(sc.r)}</span></div></div>
+  <div class="summary-card"><h3 style="color:#27500A">🤝 Partagés 50/50</h3><div class="summary-row"><span>Total</span><span>${fmt(sp.e)}</span></div><div class="summary-row"><span>Payé</span><span class="green">${fmt(sp.d)}</span></div><div class="summary-row"><span>Reste</span><span class="red">${fmt(sp.r)}</span></div><div class="summary-row" style="border-top:1px solid #f0f4f8;margin-top:4px;padding-top:5px"><span>À récupérer</span><span class="purple">${fmt(sp.a)}</span></div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab ${S.tab==='all'?'active':''}" onclick="S.tab='all';render()">Tout (${S.data.length})</button>
+  <button class="tab ${S.tab==='upcoming'?'active':''}" onclick="S.tab='upcoming';render()">À venir</button>
+  <button class="tab ${S.tab==='past'?'active':''}" onclick="S.tab='past';render()">Passées</button>
+</div>
+<div class="filters">
+  <input placeholder="Rechercher..." value="${S.fq}" oninput="S.fq=this.value;render()" style="min-width:120px;flex:1;max-width:180px">
+  <select onchange="S.fa=this.value;render()">
+    <option value="tous" ${S.fa==='tous'?'selected':''}>Tous</option>
+    <option value="moi_all" ${S.fa==='moi_all'?'selected':''}>Moi (partagés inclus)</option>
+    <option value="moi_solo" ${S.fa==='moi_solo'?'selected':''}>Moi sans partagés</option>
+    <option value="cop_all" ${S.fa==='cop_all'?'selected':''}>Copine (partagés inclus)</option>
+    <option value="cop_solo" ${S.fa==='cop_solo'?'selected':''}>Copine sans partagés</option>
+    <option value="partage" ${S.fa==='partage'?'selected':''}>Partagés</option>
+  </select>
+  <select onchange="S.fs=this.value;render()">
+    <option value="tous">Toutes sources</option>
+    ${SOURCES.map(s=>`<option value="${s}" ${S.fs===s?'selected':''}>${s}</option>`).join('')}
+  </select>
+</div>
+
+<!-- CARDS MOBILE -->
+<div class="cards-list">
+${rows.length===0?'<div class="empty">Aucun résultat</div>':rows.map(d=>{
+  const c=cmp(d);const pct=Math.round((d.pays/d.total_inst)*100);
+  const bc=c.statut==='soldé'?'#276749':c.statut==='retard'?'#A32D2D':'#185FA5';
+  return`<div class="card" onclick="openM('${d.id}')">
+    <div class="card-header">
+      <div><div class="card-title">${d.marchand}</div>${d.notes?`<div class="card-notes">${d.notes}</div>`:''}</div>
+      <div style="text-align:right"><div style="font-size:15px;font-weight:700" class="blue">${fmt(d.versement)}</div><div style="font-size:10px;color:#a0aec0">/versement</div></div>
     </div>
-
-    ${al.length?`<div class="alerts">${al.map(d=>{const c=computed(d);const cls=c.statut==='retard'?'urgent':'warn';const txt=c.statut==='retard'?`${Math.abs(c.jours)}j retard`:`${c.jours}j`;return`<div class="alert ${cls}"><div class="alert-dot"></div><strong>${d.marchand}</strong> — ${fmtDate(d.due)} — ${fmt(d.versement)} — ${txt}</div>`;}).join('')}</div>`:''}
-
-    <div class="summary-grid">
-      <div class="summary-card"><h3 style="color:#0C447C">👤 Moi (solo)</h3><div class="summary-row"><span>Total</span><span>${fmt(sm.e)}</span></div><div class="summary-row"><span>Payé</span><span style="color:#276749">${fmt(sm.d)}</span></div><div class="summary-row"><span>Reste</span><span style="color:#A32D2D">${fmt(sm.r)}</span></div></div>
-      <div class="summary-card"><h3 style="color:#633806">💑 Copine (solo)</h3><div class="summary-row"><span>Total</span><span>${fmt(sc.e)}</span></div><div class="summary-row"><span>Payé</span><span style="color:#276749">${fmt(sc.d)}</span></div><div class="summary-row"><span>Reste</span><span style="color:#A32D2D">${fmt(sc.r)}</span></div></div>
-      <div class="summary-card"><h3 style="color:#27500A">🤝 Partagés 50/50</h3><div class="summary-row"><span>Total</span><span>${fmt(sp.e)}</span></div><div class="summary-row"><span>Payé</span><span style="color:#276749">${fmt(sp.d)}</span></div><div class="summary-row"><span>Reste</span><span style="color:#A32D2D">${fmt(sp.r)}</span></div><div class="summary-row" style="border-top:1px solid #f0f4f8;margin-top:4px;padding-top:5px"><span>À récupérer</span><span style="color:#534AB7">${fmt(sp.a)}</span></div></div>
+    <div class="card-badges">${aBadge(d)}${sBadge(c.statut)}<span class="badge b-src">${d.source||'—'}</span></div>
+    <div class="card-grid">
+      <div><div class="clabel">Total achat</div><div class="cval">${fmt(c.total)}</div></div>
+      <div><div class="clabel">Restant</div><div class="cval red">${fmt(c.restant)}</div></div>
+      <div><div class="clabel">Prochaine éch.</div><div class="cval">${fd(d.due)}</div></div>
+      <div><div class="clabel">Jours</div><div class="cval">${jt(c.jours)}</div></div>
     </div>
-
-    <div class="tabs">
-      <button class="tab ${state.tab==='all'?'active':''}" onclick="setTab('all')">Tout (${state.data.length})</button>
-      <button class="tab ${state.tab==='upcoming'?'active':''}" onclick="setTab('upcoming')">À venir</button>
-      <button class="tab ${state.tab==='past'?'active':''}" onclick="setTab('past')">Passées</button>
+    <div class="card-progress">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#a0aec0;margin-bottom:2px"><span>${d.pays}/${d.total_inst}</span><span>${pct}%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${bc}"></div></div>
     </div>
-    <div class="filters">
-      <input placeholder="Rechercher..." value="${state.filterSearch}" oninput="state.filterSearch=this.value;render()" style="min-width:120px;flex:1;max-width:200px">
-      <select onchange="state.filterAcheteur=this.value;render()">
-        <option value="tous" ${state.filterAcheteur==='tous'?'selected':''}>Tous</option>
-        <option value="moi_tout" ${state.filterAcheteur==='moi_tout'?'selected':''}>Moi (partagés inclus)</option>
-        <option value="moi_solo" ${state.filterAcheteur==='moi_solo'?'selected':''}>Moi sans partagés</option>
-        <option value="copine_tout" ${state.filterAcheteur==='copine_tout'?'selected':''}>Copine (partagés inclus)</option>
-        <option value="copine_solo" ${state.filterAcheteur==='copine_solo'?'selected':''}>Copine sans partagés</option>
-        <option value="partage" ${state.filterAcheteur==='partage'?'selected':''}>Partagés</option>
-      </select>
-      <select onchange="state.filterSource=this.value;render()">
-        <option value="tous">Toutes sources</option>
-        ${SOURCES.map(s=>`<option value="${s}" ${state.filterSource===s?'selected':''}>${s}</option>`).join('')}
-      </select>
+    <div class="card-actions" onclick="event.stopPropagation()">
+      <button class="btn-pay" ${c.payDis?'disabled':''} onclick="openPay('${d.id}')">${c.payDis&&c.statut!=='soldé'?'✓ Payé':'💳 Payer'}</button>
+      ${d.partage?`<button class="remb-btn ${d.rembourse?'remb-oui':'remb-non'}" onclick="togRemb('${d.id}',${d.rembourse})">${d.rembourse?'✓ Remb.':'⏳ Non remb.'}</button>`:''}
+      <button class="btn btn-sm btn-danger" onclick="delItem('${d.id}')">Suppr.</button>
     </div>
+  </div>`;
+}).join('')}
+</div>
 
-    <div class="cards-list">
-      ${rows.length===0?'<div class="empty">Aucun résultat</div>':rows.map(d=>{
-        const c=computed(d);const pct=Math.round((d.pays/d.total_inst)*100);const bc=c.statut==='soldé'?'#276749':c.statut==='retard'?'#A32D2D':'#185FA5';
-        return`<div class="card" onclick="openModal('${d.id}')">
-          <div class="card-header">
-            <div><div class="card-title">${d.marchand}</div>${(d.notes||'')?`<div class="card-notes">${d.notes}</div>`:''}</div>
-            <div style="text-align:right"><div style="font-size:15px;font-weight:700;color:#185FA5">${fmt(d.versement)}</div><div style="font-size:10px;color:#a0aec0">/versement</div></div>
-          </div>
-          <div class="card-badges">${acheteurBadge(d)}${statutBadge(c.statut)}<span class="badge badge-source">${d.source||'—'}</span></div>
-          <div class="card-grid">
-            <div><div class="card-item-label">Total achat</div><div class="card-item-val">${fmt(c.total)}</div></div>
-            <div><div class="card-item-label">Restant</div><div class="card-item-val" style="color:#A32D2D">${fmt(c.restant)}</div></div>
-            <div><div class="card-item-label">Prochaine éch.</div><div class="card-item-val">${fmtDate(d.due)}</div></div>
-            <div><div class="card-item-label">Jours</div><div class="card-item-val">${jourstxt(c.jours)}</div></div>
-          </div>
-          <div class="card-progress">
-            <div style="display:flex;justify-content:space-between;font-size:10px;color:#a0aec0;margin-bottom:2px"><span>${d.pays}/${d.total_inst}</span><span>${pct}%</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${bc}"></div></div>
-          </div>
-          <div class="card-actions" onclick="event.stopPropagation()">
-            <button class="btn btn-pay" ${c.payDisabled?'disabled':''} onclick="openPayModal('${d.id}')">${c.payDisabled&&c.statut!=='soldé'?'✓ Payé':'💳 Payer'}</button>
-            ${d.partage?`<button class="remb-btn ${d.rembourse?'remb-oui':'remb-non'}" onclick="toggleRemb('${d.id}',${d.rembourse})">${d.rembourse?'✓ Remb.':'⏳ Non remb.'}</button>`:''}
-            <button class="btn btn-sm btn-danger" onclick="deleteItem('${d.id}')">Suppr.</button>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>
+<!-- TABLE DESKTOP -->
+<div class="table-wrap">
+${rows.length===0?'<div class="empty">Aucun résultat</div>':`<table><thead><tr>
+  <th>Marchand</th><th>Source</th><th>Acheteur</th><th>Versement</th><th>Total achat</th><th>Progrès</th><th>Restant</th><th>Prochaine éch.</th><th>Jours</th><th>Statut</th><th>Part copine</th><th>Actions</th>
+</tr></thead><tbody>
+${rows.map(d=>{
+  const c=cmp(d);const pct=Math.round((d.pays/d.total_inst)*100);
+  const bc=c.statut==='soldé'?'#276749':c.statut==='retard'?'#A32D2D':'#185FA5';
+  return`<tr onclick="openM('${d.id}')">
+    <td><div style="font-weight:500">${d.marchand}</div>${d.notes?`<div style="font-size:10px;color:#a0aec0">${d.notes}</div>`:''}</td>
+    <td><span class="badge b-src">${d.source||'—'}</span></td>
+    <td>${aBadge(d)}</td>
+    <td style="font-weight:600">${fmt(d.versement)}</td>
+    <td>${fmt(c.total)}</td>
+    <td><div style="font-size:10px;color:#a0aec0">${d.pays}/${d.total_inst}</div><div class="progress-bar" style="width:72px"><div class="progress-fill" style="width:${pct}%;background:${bc}"></div></div></td>
+    <td style="font-weight:600" class="${c.restant>0?'red':'green'}">${fmt(c.restant)}</td>
+    <td style="white-space:nowrap">${fdf(d.due)}</td>
+    <td>${jt(c.jours)}</td>
+    <td>${sBadge(c.statut)}</td>
+    <td>${d.partage?`<button class="remb-btn ${d.rembourse?'remb-oui':'remb-non'}" onclick="event.stopPropagation();togRemb('${d.id}',${d.rembourse})">${d.rembourse?'✓ Remb.':'⏳ Non'}</button>`:'<span style="color:#e2e8f0">—</span>'}</td>
+    <td onclick="event.stopPropagation()"><div class="acts">
+      <button class="btn-pay" ${c.payDis?'disabled':''} onclick="openPay('${d.id}')">${c.payDis&&c.statut!=='soldé'?'✓':'💳'}</button>
+      <button class="btn btn-sm btn-danger" onclick="delItem('${d.id}')">✕</button>
+    </div></td>
+  </tr>`;
+}).join('')}
+</tbody></table>`}
+</div>
 
-    <div class="table-wrap">
-      ${rows.length===0?'<div class="empty">Aucun résultat</div>':`
-      <table><thead><tr>
-        <th>Marchand</th><th>Source</th><th>Acheteur</th><th>Versement</th><th>Total achat</th><th>Progrès</th><th>Restant</th><th>Prochaine éch.</th><th>Jours</th><th>Statut</th><th>Part copine</th><th>Actions</th>
-      </tr></thead><tbody>
-      ${rows.map(d=>{const c=computed(d);const pct=Math.round((d.pays/d.total_inst)*100);const bc=c.statut==='soldé'?'#276749':c.statut==='retard'?'#A32D2D':'#185FA5';return`<tr onclick="openModal('${d.id}')">
-        <td><div style="font-weight:500">${d.marchand}</div>${(d.notes||'')?`<div style="font-size:10px;color:#a0aec0">${d.notes}</div>`:''}</td>
-        <td><span class="badge badge-source">${d.source||'—'}</span></td>
-        <td>${acheteurBadge(d)}</td>
-        <td style="font-weight:600">${fmt(d.versement)}</td>
-        <td>${fmt(c.total)}</td>
-        <td><div style="font-size:10px;color:#a0aec0">${d.pays}/${d.total_inst}</div><div class="progress-bar" style="width:72px"><div class="progress-fill" style="width:${pct}%;background:${bc}"></div></div></td>
-        <td style="font-weight:600;color:${c.restant>0?'#A32D2D':'#276749'}">${fmt(c.restant)}</td>
-        <td style="white-space:nowrap">${fmtDateFull(d.due)}</td>
-        <td>${jourstxt(c.jours)}</td>
-        <td>${statutBadge(c.statut)}</td>
-        <td>${d.partage?`<button class="remb-btn ${d.rembourse?'remb-oui':'remb-non'}" onclick="event.stopPropagation();toggleRemb('${d.id}',${d.rembourse})">${d.rembourse?'✓ Remb.':'⏳ Non'}</button>`:'<span style="color:#e2e8f0">—</span>'}</td>
-        <td onclick="event.stopPropagation()"><div class="actions-cell">
-          <button class="btn btn-pay" ${c.payDisabled?'disabled':''} onclick="openPayModal('${d.id}')">${c.payDisabled&&c.statut!=='soldé'?'✓ Payé':'💳'}</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteItem('${d.id}')">✕</button>
-        </div></td>
-      </tr>`;}).join('')}
-      </tbody></table>`}
-    </div>
-
-    ${state.modal?renderEditModal():''}
-    ${state.payModal?renderPayModal():''}
-    ${state.pinChangeModal?renderPinModal():''}
-  `;
+${S.modal?editModal():''}
+${S.payId?payModal():''}
+${S.pinModal?pinModal():''}
+`;
+  document.getElementById('appScreen').innerHTML=html;
 }
 
-function renderEditModal(){
-  const isEdit=state.modal!=='new';
-  const d=isEdit?state.data.find(x=>x.id===state.modal):{marchand:'',versement:'',montant_total:'',pays:1,total_inst:4,due:'',acheteur:'Moi',partage:false,source:'Carte bancaire',notes:''};
+function editModal(){
+  const isE=S.modal!=='new';
+  const d=isE?S.data.find(x=>x.id===S.modal):{marchand:'',versement:'',montant_total:'',pays:0,total_inst:4,due:'',acheteur:'Moi',partage:false,source:'Carte bancaire',notes:''};
   if(!d)return'';
-  return`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal">
-    <h2>${isEdit?'Modifier':'Ajouter un achat'}</h2>
-    <div class="form-grid">
-      <div class="form-group full"><label>Marchand *</label><input id="f-marchand" value="${d.marchand||''}" placeholder="Ex: Amazon..."></div>
-      <div class="form-group"><label>Versement (€) *</label><input id="f-versement" type="number" step="0.01" value="${d.versement||''}" oninput="autoCalcTotal()"></div>
-      <div class="form-group"><label>Nb versements total</label><input id="f-total" type="number" min="1" value="${d.total_inst||4}" oninput="autoCalcTotal()"></div>
-      <div class="form-group"><label>Montant total achat (€)</label><input id="f-montant-total" type="number" step="0.01" value="${d.montant_total||''}" placeholder="Auto" oninput="this.dataset.manual=1"></div>
-      <div class="form-group"><label>Versements payés</label><input id="f-pays" type="number" min="0" value="${d.pays||0}"></div>
-      <div class="form-group"><label>Prochaine échéance *</label><input id="f-due" type="date" value="${d.due||''}"></div>
-      <div class="form-group"><label>Source</label><select id="f-source">${SOURCES.map(s=>`<option value="${s}" ${(d.source||'Carte bancaire')===s?'selected':''}>${s}</option>`).join('')}</select></div>
-      <div class="form-group"><label>Acheteur (CB)</label><select id="f-acheteur"><option value="Moi" ${(d.acheteur||'Moi')==='Moi'?'selected':''}>Moi</option><option value="Copine" ${d.acheteur==='Copine'?'selected':''}>Copine</option></select></div>
-      <div class="form-group"><label>Partagé 50/50 ?</label><select id="f-partage"><option value="non" ${!d.partage?'selected':''}>Non</option><option value="oui" ${d.partage?'selected':''}>Oui</option></select></div>
-      <div class="form-group full"><label>Notes</label><input id="f-notes" value="${d.notes||''}" placeholder="Ex: Vacances..."></div>
+  return`<div class="overlay" onclick="if(event.target===this){S.modal=null;render()}"><div class="modal">
+    <h2>${isE?'Modifier l\'achat':'Ajouter un achat'}</h2>
+    <div class="fg">
+      <div class="frow full"><label>Marchand *</label><input id="fm" value="${d.marchand||''}" placeholder="Ex: Amazon..."></div>
+      <div class="frow"><label>Versement (€) *</label><input id="fv" type="number" step="0.01" value="${d.versement||''}" oninput="act()"></div>
+      <div class="frow"><label>Nb versements total</label><input id="ft" type="number" min="1" value="${d.total_inst||4}" oninput="act()"></div>
+      <div class="frow"><label>Montant total (€)</label><input id="ftt" type="number" step="0.01" value="${d.montant_total||''}" placeholder="Auto" oninput="this.dataset.m=1"></div>
+      <div class="frow"><label>Versements payés</label><input id="fp" type="number" min="0" value="${d.pays||0}"></div>
+      <div class="frow"><label>Prochaine échéance *</label><input id="fd" type="date" value="${d.due||''}"></div>
+      <div class="frow"><label>Source</label><select id="fsr">${SOURCES.map(s=>`<option value="${s}" ${(d.source||'Carte bancaire')===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="frow"><label>Acheteur (CB)</label><select id="fa"><option value="Moi" ${(d.acheteur||'Moi')==='Moi'?'selected':''}>Moi</option><option value="Copine" ${d.acheteur==='Copine'?'selected':''}>Copine</option></select></div>
+      <div class="frow"><label>Partagé 50/50 ?</label><select id="fpa"><option value="non" ${!d.partage?'selected':''}>Non</option><option value="oui" ${d.partage?'selected':''}>Oui</option></select></div>
+      <div class="frow full"><label>Notes</label><input id="fn" value="${d.notes||''}" placeholder="Ex: Vacances..."></div>
     </div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Annuler</button>
-      <button class="btn btn-primary" onclick="saveItem(${isEdit?`'${d.id}'`:'null'})">${isEdit?'Enregistrer':'Ajouter'}</button>
+    <div class="macts">
+      <button class="btn" onclick="S.modal=null;render()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveItem(${isE?`'${d.id}'`:'null'})">${isE?'Enregistrer':'Ajouter'}</button>
     </div>
   </div></div>`;
 }
 
-function autoCalcTotal(){
-  const v=parseFloat(document.getElementById('f-versement').value)||0;
-  const t=parseInt(document.getElementById('f-total').value)||0;
-  const mt=document.getElementById('f-montant-total');
-  if(v&&t&&!mt.dataset.manual)mt.value=(v*t).toFixed(2);
+function act(){
+  const v=parseFloat(document.getElementById('fv').value)||0;
+  const t=parseInt(document.getElementById('ft').value)||0;
+  const el=document.getElementById('ftt');
+  if(v&&t&&!el.dataset.m)el.value=(v*t).toFixed(2);
 }
 
-function renderPayModal(){
-  const d=state.data.find(x=>x.id===state.payModal);if(!d)return'';
-  const c=computed(d);
-  return`<div class="overlay" onclick="if(event.target===this)closePayModal()"><div class="modal">
+function payModal(){
+  const d=S.data.find(x=>x.id===S.payId);if(!d)return'';
+  const c=cmp(d);
+  return`<div class="overlay" onclick="if(event.target===this){S.payId=null;render()}"><div class="modal">
     <h2>💳 Payer — ${d.marchand}</h2>
-    <div class="pay-section"><h3>Que voulez-vous payer ?</h3>
-      <div class="pay-option"><input type="radio" name="pt" id="pt1" value="echeance" checked onchange="updatePaySum('${d.id}')"><label for="pt1">Payer la prochaine échéance <span>${fmt(d.versement)}</span></label></div>
-      <div class="pay-option"><input type="radio" name="pt" id="pt2" value="total" onchange="updatePaySum('${d.id}')"><label for="pt2">Solder le reste complet <span>${fmt(c.restant)}</span></label></div>
+    <div class="psec"><h3>Que voulez-vous payer ?</h3>
+      <div class="popt"><input type="radio" name="pt" id="pt1" value="ech" checked onchange="updPS()"><label for="pt1">Payer la prochaine échéance <b>(${fmt(d.versement)})</b><br><small style="color:#718096">→ Prochaine éch. passera au ${fd(nextMonth(d.due))}</small></label></div>
+      <div class="popt"><input type="radio" name="pt" id="pt2" value="tot" onchange="updPS()"><label for="pt2">Solder le reste complet <b>(${fmt(c.restant)})</b></label></div>
     </div>
-    ${d.partage?`<div class="pay-section"><h3>Remboursement copine (50/50)</h3>
-      <div class="pay-option"><input type="radio" name="cp" id="cp1" value="non" checked onchange="updatePaySum('${d.id}')"><label for="cp1">Pas encore remboursé</label></div>
-      <div class="pay-option"><input type="radio" name="cp" id="cp2" value="oui" onchange="updatePaySum('${d.id}')"><label for="cp2">Ma copine a payé sa part <span>${fmt(d.versement/2)}</span></label></div>
+    ${d.partage?`<div class="psec"><h3>Part de ma copine (50/50)</h3>
+      <div class="popt"><input type="radio" name="cp" id="cp1" value="non" checked onchange="updPS()"><label for="cp1">Pas encore remboursée</label></div>
+      <div class="popt"><input type="radio" name="cp" id="cp2" value="oui" onchange="updPS()"><label for="cp2">Ma copine a payé sa part <b>(${fmt(d.versement/2)})</b></label></div>
     </div>`:''}
-    <div class="pay-summary" id="paySummary"></div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closePayModal()">Annuler</button>
+    <div class="psum" id="ps"></div>
+    <div class="macts">
+      <button class="btn" onclick="S.payId=null;render()">Annuler</button>
       <button class="btn btn-primary" onclick="confirmPay('${d.id}')">✓ Confirmer</button>
     </div>
   </div></div>`;
 }
 
-function updatePaySum(id){
-  const d=state.data.find(x=>x.id===id);if(!d)return;
-  const c=computed(d);
-  const pt=document.querySelector('input[name="pt"]:checked')?.value||'echeance';
-  const cpOui=d.partage?(document.querySelector('input[name="cp"]:checked')?.value==='oui'):false;
-  const montant=pt==='total'?c.restant:d.versement;
-  const jeDebourse=cpOui?montant/2:montant;
-  let html=`<div class="pay-summary-row"><span>Montant</span><span>${fmt(montant)}</span></div>`;
-  if(d.partage){html+=`<div class="pay-summary-row"><span>Part copine</span><span>${fmt(montant/2)}</span></div><div class="pay-summary-row"><span>Remboursée ?</span><span>${cpOui?'✓ Oui':'⏳ Non'}</span></div>`;}
-  html+=`<div class="pay-summary-row total"><span>Je débourse</span><span style="color:#276749">${fmt(jeDebourse)}</span></div>`;
-  document.getElementById('paySummary').innerHTML=html;
+function updPS(){
+  const d=S.data.find(x=>x.id===S.payId);if(!d)return;
+  const c=cmp(d);
+  const pt=document.querySelector('input[name="pt"]:checked')?.value||'ech';
+  const cpO=d.partage?(document.querySelector('input[name="cp"]:checked')?.value==='oui'):false;
+  const m=pt==='tot'?c.restant:d.versement;
+  const deb=cpO?m/2:m;
+  let h=`<div class="psum-row"><span>Montant</span><span>${fmt(m)}</span></div>`;
+  if(d.partage)h+=`<div class="psum-row"><span>Part copine</span><span>${fmt(m/2)}</span></div><div class="psum-row"><span>Remboursée ?</span><span>${cpO?'✓ Oui':'⏳ Non'}</span></div>`;
+  h+=`<div class="psum-row tot"><span>Je débourse</span><span class="green">${fmt(deb)}</span></div>`;
+  document.getElementById('ps').innerHTML=h;
 }
 
-function renderPinModal(){
-  return`<div class="overlay" onclick="if(event.target===this)closePinChange()"><div class="modal">
+function pinModal(){
+  return`<div class="overlay" onclick="if(event.target===this){S.pinModal=false;render()}"><div class="modal">
     <h2>🔑 Changer le code PIN</h2>
-    <div class="form-grid">
-      <div class="form-group full"><label>Nouveau PIN (4 chiffres)</label><input id="new-pin" type="tel" maxlength="4" placeholder="Ex: 5678"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closePinChange()">Annuler</button>
+    <div class="fg"><div class="frow full"><label>Nouveau PIN (4 chiffres)</label><input id="np" type="tel" maxlength="4" placeholder="Ex: 5678"></div></div>
+    <div class="macts">
+      <button class="btn" onclick="S.pinModal=false;render()">Annuler</button>
       <button class="btn btn-primary" onclick="savePin()">Enregistrer</button>
     </div>
   </div></div>`;
 }
 
-function openModal(id){state.modal=id||'new';render();}
-function closeModal(){state.modal=null;render();}
-function openPayModal(id){state.payModal=id;render();setTimeout(()=>updatePaySum(id),50);}
-function closePayModal(){state.payModal=null;render();}
-function openPinChange(){state.pinChangeModal=true;render();}
-function closePinChange(){state.pinChangeModal=false;render();}
-function setTab(t){state.tab=t;render();}
+function openM(id){S.modal=id||'new';render();}
+function openPay(id){S.payId=id;render();setTimeout(updPS,50);}
 
-async function toggleRemb(id,current){await sb.from('echeances').update({rembourse:!current}).eq('id',id);await loadData();render();showToast(!current?'✓ Remboursé':'Annulé');}
-async function deleteItem(id){if(!confirm('Supprimer ?'))return;await sb.from('echeances').delete().eq('id',id);await loadData();render();showToast('Supprimé');}
+async function togRemb(id,cur){
+  await sb.from('echeances').update({rembourse:!cur}).eq('id',id);
+  await loadData();render();toast(!cur?'✓ Remboursé':'Annulé');
+}
+
+async function delItem(id){
+  if(!confirm('Supprimer ?'))return;
+  await sb.from('echeances').delete().eq('id',id);
+  await loadData();render();toast('Supprimé');
+}
 
 async function saveItem(id){
-  const marchand=document.getElementById('f-marchand').value.trim();
-  const versement=parseFloat(document.getElementById('f-versement').value);
-  const pays=parseInt(document.getElementById('f-pays').value);
-  const total_inst=parseInt(document.getElementById('f-total').value);
-  const due=document.getElementById('f-due').value;
-  const acheteur=document.getElementById('f-acheteur').value;
-  const partage=document.getElementById('f-partage').value==='oui';
-  const source=document.getElementById('f-source').value;
-  const notes=document.getElementById('f-notes').value.trim();
-  const mtRaw=document.getElementById('f-montant-total').value;
-  const montant_total=mtRaw?parseFloat(mtRaw):versement*total_inst;
+  const marchand=document.getElementById('fm').value.trim();
+  const versement=parseFloat(document.getElementById('fv').value);
+  const pays=parseInt(document.getElementById('fp').value);
+  const total_inst=parseInt(document.getElementById('ft').value);
+  const due=document.getElementById('fd').value;
+  const acheteur=document.getElementById('fa').value;
+  const partage=document.getElementById('fpa').value==='oui';
+  const source=document.getElementById('fsr').value;
+  const notes=document.getElementById('fn').value.trim();
+  const mr=document.getElementById('ftt').value;
+  const montant_total=mr?parseFloat(mr):versement*total_inst;
   if(!marchand||!versement||!due){alert('Champs obligatoires manquants');return;}
   const item={marchand,versement,montant_total,pays,total_inst,due,acheteur,partage,source,notes};
-  if(id!==null){await sb.from('echeances').update(item).eq('id',id);showToast('Modifié ✓');}
-  else{await sb.from('echeances').insert({...item,rembourse:false});showToast('Ajouté ✓');}
-  await loadData();closeModal();
+  if(id!==null){await sb.from('echeances').update(item).eq('id',id);toast('Modifié ✓');}
+  else{await sb.from('echeances').insert({...item,rembourse:false});toast('Ajouté ✓');}
+  await loadData();S.modal=null;render();
 }
 
 async function confirmPay(id){
-  const d=state.data.find(x=>x.id===id);if(!d)return;
-  const c=computed(d);
-  const pt=document.querySelector('input[name="pt"]:checked')?.value||'echeance';
-  const cpOui=d.partage?(document.querySelector('input[name="cp"]:checked')?.value==='oui'):false;
+  const d=S.data.find(x=>x.id===id);if(!d)return;
+  const c=cmp(d);
+  const pt=document.querySelector('input[name="pt"]:checked')?.value||'ech';
+  const cpO=d.partage?(document.querySelector('input[name="cp"]:checked')?.value==='oui'):false;
   const today=new Date().toISOString().split('T')[0];
-  let updates={last_paid_date:today};
-  if(pt==='total'){updates.pays=d.total_inst;updates.rembourse=cpOui||d.rembourse;}
-  else{updates.pays=d.pays+1;updates.due=addMonths(d.due,1);updates.rembourse=cpOui?true:(d.partage?false:d.rembourse);}
-  await sb.from('echeances').update(updates).eq('id',id);
-  await loadData();closePayModal();showToast('Paiement enregistré ✓');
+
+  let u={last_paid_date:today};
+
+  if(pt==='tot'){
+    // Solder tout — marquer tous les versements comme payés
+    u.pays=d.total_inst;
+    if(cpO)u.rembourse=true;
+  } else {
+    // Payer UNE échéance → incrémenter pays ET passer à la prochaine date
+    const newPays=d.pays+1;
+    u.pays=newPays;
+    // Passer automatiquement à la prochaine échéance (mois suivant)
+    u.due=nextMonth(d.due);
+    // Gérer remboursement copine
+    if(d.partage){u.rembourse=cpO?true:false;}
+  }
+
+  await sb.from('echeances').update(u).eq('id',id);
+  await loadData();
+  S.payId=null;
+  render();
+  toast('Paiement enregistré ✓ — Prochaine éch. mise à jour');
 }
 
 async function savePin(){
-  const v=document.getElementById('new-pin').value.trim();
+  const v=document.getElementById('np').value.trim();
   if(!/^\d{4}$/.test(v)){alert('4 chiffres requis');return;}
   await sb.from('app_config').upsert({key:'pin',value:v});
-  correctPin=v;closePinChange();showToast('PIN mis à jour ✓');
+  cp=v;S.pinModal=false;render();toast('PIN mis à jour ✓');
 }
 
-function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
-async function initApp(){await loadData();render();}
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+}
+
+async function init(){await loadData();render();}
 loadPin();
 </script>
 </body>
