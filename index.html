@@ -177,7 +177,7 @@ const SB = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xZnl1cHJwenRpeWZwbGVhbm50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMjg3MjUsImV4cCI6MjA4OTkwNDcyNX0.4Fvc-fNlwhVp0HvOEL-Z92i9W4YvVSAgen0ihBzlGOk'
 );
 const SRC=['PayPal','Oney','Cofidis','Carte bancaire','Virement','Prélèvement','Autre'];
-
+ 
 // PIN
 let pv='', pc='0000';
 // Charger PIN et photo de fond au démarrage
@@ -190,7 +190,7 @@ let pv='', pc='0000';
     if(bg&&bg.value) applyBg(bg.value);
   }
 })();
-
+ 
 function applyBg(dataUrl){
   if(!dataUrl) return;
   const ps=document.getElementById('pin-screen');
@@ -204,10 +204,10 @@ function applyBg(dataUrl){
     if(overlay) overlay.style.display='flex';
   }
 }
-
+ 
 function PK(n){if(pv.length>=4)return;pv+=n;PR();if(pv.length===4)setTimeout(PC,100);}
 function PD(){pv=pv.slice(0,-1);PR();document.getElementById('pin-err').textContent='';}
-
+ 
 // iOS Safari fix: use touchstart + preventDefault to avoid 300ms delay and ghost clicks
 document.addEventListener('DOMContentLoaded', function() {
   const pad = document.getElementById('pin-pad');
@@ -239,22 +239,22 @@ async function PC(){
     pv='';PR();
   }
 }
-
+ 
 // STATE
 let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false};
-
+ 
 async function LD(){
   const {data,error}=await SB.from('echeances').select('*').order('due');
   if(error){T('Erreur: '+error.message);return;}
   G.rows=data||[];
 }
-
+ 
 function f(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
 function addM(s){const d=new Date(s+'T12:00:00');d.setMonth(d.getMonth()+1);return d.toISOString().split('T')[0];}
 function fd(s){return new Date(s+'T12:00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});}
 function fdf(s){return new Date(s+'T12:00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});}
 function mn(off=0){const d=new Date();if(off)d.setMonth(d.getMonth()+off);return d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});}
-
+ 
 function gv(r,i){
   // Si perso et données disponibles, utiliser le montant perso
   if(r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[i]&&parseFloat(r.versements_perso[i].montant))
@@ -293,7 +293,7 @@ function calc(r){
   const pd2=(lk===nk)||rest===0;
   return{rest,total,deja,restant,pc:pc2,j,st,pd:pd2,cv:gv(r,r.pays),cc:gc(r,r.pays)};
 }
-
+ 
 function GMD(y,m){
   const s=new Date(y,m,1,0,0,0);
   const e=new Date(y,m+1,0,23,59,59); // fin du dernier jour du mois
@@ -308,7 +308,7 @@ function GMD(y,m){
   });
   return{mi,co};
 }
-
+ 
 function filtered(){
   const t=new Date();t.setHours(0,0,0,0);
   return G.rows.filter(r=>{
@@ -345,17 +345,17 @@ function filtered(){
     }
   });
 }
-
+ 
 function kpis(){
   let te=0,tr=0,tp=0,mr=0,cr=0;
   G.rows.forEach(r=>{const c=calc(r);te+=c.total;tr+=c.restant;if(r.partage)tp+=c.pc;if(r.acheteur==='Moi')mr+=r.partage?c.restant-c.pc:c.restant;if(r.acheteur==='Copine')cr+=c.restant;});
   return{te,tr,tp,mr,cr};
 }
-
+ 
 function SB2(s){const m={soldé:['b-don','Soldé'],retard:['b-lat','Retard'],urgent:['b-urg','Urgent'],ok:['b-ok','OK']};const[cl,t]=m[s];return`<span class="badge ${cl}">${t}</span>`;}
 function AB(r){if(r.partage)return`<span class="badge b-par">${r.partage_type==='perso'?'Partagé perso':'Partagé 50/50'}</span>`;if(r.acheteur==='Copine')return`<span class="badge b-cop">Copine</span>`;return`<span class="badge b-moi">Moi</span>`;}
 function JT(j){if(j<0)return`<span class="c-red" style="font-weight:700">${Math.abs(j)}j</span>`;if(j===0)return`<span style="color:#D85A30;font-weight:700">Auj.</span>`;if(j<=7)return`<span style="color:#D85A30;font-weight:600">${j}j</span>`;return`<span style="color:#718096">${j}j</span>`;}
-
+ 
 function MB(off){
   const now=new Date();
   const d=GMD(now.getFullYear(),now.getMonth()+off);
@@ -396,7 +396,7 @@ function MB(off){
     :'')+
     '</div>';
 }
-
+ 
 function render(){
   applyDark();
   const k=kpis();
@@ -406,7 +406,7 @@ function render(){
   G.rows.forEach(r=>{const c=calc(r);if(r.partage){sp.e+=c.total;sp.d+=c.deja;sp.r+=c.restant;sp.a+=c.pc;}else if(r.acheteur==='Moi'){sm.e+=c.total;sm.d+=c.deja;sm.r+=c.restant;}else{sc.e+=c.total;sc.d+=c.deja;sc.r+=c.restant;}});
   const nEn=G.rows.filter(r=>calc(r).st!=='soldé').length;
   const nSo=G.rows.filter(r=>calc(r).st==='soldé').length;
-
+ 
   document.getElementById('app').innerHTML=`
 <div class="topbar"><h1>MY <span>Wallet</span> 💛</h1><div class="topbar-r"><button class="btn" onclick="G.sm=true;render()" style="font-size:16px;padding:6px 10px">⚙️</button><button class="btn btn-p" onclick="OE(null)">+ Ajouter</button></div></div>
 <div class="kpi-grid">
@@ -504,7 +504,7 @@ ${rows.map(r=>{const c=calc(r);const pct=Math.round((r.pays/r.total_inst)*100);c
 ${G.eid!==null?EM():''}${G.pid?PM():''}${G.sm?SM():''}`;
   setTimeout(drawChart, 50);
 }
-
+ 
 function EM(){
   const isN=G.eid==='new';
   const r=isN?{marchand:'',versement:'',montant_total:'',pays:0,total_inst:4,due:'',acheteur:'Moi',partage:false,partage_type:'50/50',versement_type:'egal',versements_perso:null,source:'Carte bancaire',notes:''}:G.rows.find(x=>x.id===G.eid);
@@ -537,7 +537,7 @@ function EM(){
     <div class="macts"><button class="btn" onclick="G.eid=null;render()">Annuler</button><button class="btn btn-p" onclick="SR(${isN?"'new'":`'${r.id}'`})">${isN?'Ajouter':'Enregistrer'}</button></div>
   </div></div>`;
 }
-
+ 
 function AT(){const v=parseFloat(document.getElementById('ev')?.value)||0;const t=parseInt(document.getElementById('et')?.value)||0;const el=document.getElementById('ett');if(el&&v&&t&&!el.dataset.m)el.value=(v*t).toFixed(2);}
 function CVT(){const nb=parseInt(document.getElementById('et')?.value)||4;let tot=0;for(let i=0;i<nb;i++){const el=document.getElementById(`vpm_${i}`);if(el)tot+=parseFloat(el.value)||0;}const el=document.getElementById('vpt-t');if(el)el.textContent=f(tot);}
 function RVP(){
@@ -546,16 +546,16 @@ function RVP(){
   const pa=document.getElementById('epa')?.value||'non';
   const ip=vt==='perso';
   const sc2=pa==='perso'; // colonne copine si partage perso, peu importe le type de versement
-
+ 
   const evR=document.getElementById('ev-r');const ettR=document.getElementById('ett-r');
   if(evR)evR.style.display=ip?'none':'';
   if(ettR)ettR.style.display=ip?'none':'';
-
+ 
   const w=document.getElementById('vp-w');if(!w)return;
-
+ 
   // Afficher le tableau si versements perso OU si partage perso (pour saisir les parts copine)
   if(!ip&&!sc2){w.innerHTML='';return;}
-
+ 
   const showMontant=ip; // colonnes montant seulement si versements perso
   w.innerHTML=`<div style="background:#f7fafc;border-radius:10px;padding:.75rem">
     <div style="font-size:11px;font-weight:600;color:#718096;text-transform:uppercase;margin-bottom:6px">
@@ -571,7 +571,7 @@ function RVP(){
     ${ip?`<div style="margin-top:8px;font-size:12px;color:#718096">Total : <span id="vpt-t" style="font-weight:600;color:#185FA5">0,00 €</span></div>`:''}
   </div>`;
 }
-
+ 
 function PM(){
   const r=G.rows.find(x=>x.id===G.pid);if(!r)return'';
   const c=calc(r);
@@ -589,7 +589,7 @@ function PM(){
     <div class="macts"><button class="btn" onclick="G.pid=null;render()">Annuler</button><button class="btn btn-p" onclick="CP('${r.id}')">✓ Confirmer</button></div>
   </div></div>`;
 }
-
+ 
 function UPS(){
   const r=G.rows.find(x=>x.id===G.pid);if(!r)return;
   const c=calc(r);
@@ -601,12 +601,12 @@ function UPS(){
   h+=`<div class="psr tot"><span>Je débourse</span><span class="c-green">${f(deb)}</span></div>`;
   document.getElementById('ps').innerHTML=h;
 }
-
+ 
 function SM(){
   return`<div class="overlay" onclick="if(event.target===this){G.sm=false;render()}"><div class="modal">
     <h2>⚙️ Réglages</h2>
     <div style="display:flex;flex-direction:column;gap:16px">
-
+ 
       <div style="background:var(--bg);border-radius:10px;padding:1rem">
         <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">Apparence</div>
         <div style="display:flex;align-items:center;justify-content:space-between">
@@ -616,7 +616,7 @@ function SM(){
           </button>
         </div>
       </div>
-
+ 
       <div style="background:var(--bg);border-radius:10px;padding:1rem">
         <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">Photo de fond (écran PIN)</div>
         <div style="display:flex;align-items:center;gap:10px">
@@ -627,7 +627,7 @@ function SM(){
           <button onclick="removeBg()" style="padding:7px 14px;border-radius:8px;border:1px solid #F09595;color:#A32D2D;background:var(--card);font-size:12px;cursor:pointer;font-family:inherit;touch-action:manipulation">Supprimer</button>
         </div>
       </div>
-
+ 
       <div style="background:var(--bg);border-radius:10px;padding:1rem">
         <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">Code PIN</div>
         <div style="display:flex;flex-direction:column;gap:8px">
@@ -635,18 +635,18 @@ function SM(){
           <button onclick="SPC()" class="btn btn-p" style="align-self:flex-end">Enregistrer le PIN</button>
         </div>
       </div>
-
+ 
     </div>
     <div class="macts"><button class="btn" onclick="G.sm=false;render()">Fermer</button></div>
   </div></div>`;
 }
-
+ 
 function OE(id){G.eid=id||'new';render();}
 function OP(id){G.pid=id;render();setTimeout(UPS,50);}
-
+ 
 async function TR(id,cur){await SB.from('echeances').update({rembourse:!cur}).eq('id',id);await LD();render();T(!cur?'✓ Remboursé':'Annulé');}
 async function DR(id){if(!confirm('Supprimer ?'))return;await SB.from('echeances').delete().eq('id',id);await LD();render();T('Supprimé');}
-
+ 
 async function SR(id){
   const marchand=document.getElementById('em').value.trim();
   const pays=parseInt(document.getElementById('ep').value)||0;
@@ -691,7 +691,7 @@ async function SR(id){
   else{await SB.from('echeances').update(item).eq('id',id);T('Modifié ✓');}
   await LD();G.eid=null;render();
 }
-
+ 
 async function CP(id){
   const r=G.rows.find(x=>x.id===id);if(!r)return;
   const pt=document.querySelector('input[name="pt"]:checked')?.value||'ech';
@@ -703,14 +703,14 @@ async function CP(id){
   await SB.from('echeances').update(u).eq('id',id);
   await LD();G.pid=null;render();T('Payé ✓ — Prochaine : '+fd(u.due||r.due));
 }
-
+ 
 async function SPC(){
   const v=document.getElementById('np').value.trim();
   if(!/^\d{4}$/.test(v)){alert('4 chiffres requis');return;}
   await SB.from('app_config').upsert({key:'pin',value:v});
   pc=v;G.pm=false;render();T('PIN mis à jour ✓');
 }
-
+ 
 function T(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
 async function uploadBg(input){
   const file=input.files[0];
@@ -738,7 +738,7 @@ async function uploadBg(input){
   };
   reader.readAsDataURL(file);
 }
-
+ 
 // Dark mode
 let isDark = localStorage.getItem('dark') === '1';
 function applyDark(){
@@ -754,7 +754,7 @@ function toggleDark(){
   setTimeout(drawChart, 50);
 }
 applyDark();
-
+ 
 // Graphique - reconstruit l'historique des paiements déjà effectués
 let chartInstance = null;
 function drawChart(){
@@ -762,295 +762,26 @@ function drawChart(){
   const canvas = document.getElementById('chart-mois');
   if(!canvas) return;
   if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
-
-  const now = new Date();
-  // Initialiser 6 mois de données
-  const months = [];
-  for(let i = 5; i >= 0; i--){
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push({
-      y: d.getFullYear(), m: d.getMonth(),
-      label: d.toLocaleDateString('fr-FR', {month:'short', year:'2-digit'}),
-      moi: 0, copine: 0, partage: 0
-    });
-  }
-
-  // Pour chaque achat, reconstituer les versements passés
-  G.rows.forEach(r => {
-    if(r.pays === 0) return; // aucun versement payé
-    const v = parseFloat(r.versement) || 0;
-    if(v === 0) return;
-
-    // La prochaine échéance = r.due
-    // Les versements passés = on remonte mois par mois depuis r.due
-    const nextDue = new Date(r.due + 'T12:00:00');
-
-    for(let p = 1; p <= r.pays; p++){
-      // Le versement p a été payé p mois avant la prochaine échéance
-      const paidDate = new Date(nextDue);
-      paidDate.setMonth(paidDate.getMonth() - p);
-      const py = paidDate.getFullYear();
-      const pm = paidDate.getMonth();
-
-      // Chercher si ce mois est dans nos 6 mois
-      const slot = months.find(x => x.y === py && x.m === pm);
-      if(!slot) continue;
-
-      // Montant du versement (perso ou égal)
-      const vIdx = r.pays - p; // index du versement payé
-      let montant = v;
-      if(r.versement_type === 'perso' && r.versements_perso && r.versements_perso[vIdx]) {
-        montant = parseFloat(r.versements_perso[vIdx].montant) || v;
-      }
-
-      if(r.partage) {
-        slot.partage += montant;
-      } else if(r.acheteur === 'Moi') {
-        slot.moi += montant;
-      } else {
-        slot.copine += montant;
-      }
-    }
-  });
-
-  const labels = months.map(x => x.label);
-  const dataMoi = months.map(x => Math.round(x.moi * 100) / 100);
-  const dataCopine = months.map(x => Math.round(x.copine * 100) / 100);
-  const dataPartage = months.map(x => Math.round(x.partage * 100) / 100);
-
-  const dark = document.body.classList.contains('dark');
-  const textColor = dark ? '#94a3b8' : '#718096';
-  const gridColor = dark ? '#334155' : '#e2e8f0';
-
-  chartInstance = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        { label: '👤 Moi', data: dataMoi, backgroundColor: '#185FA5CC', borderRadius: 6 },
-        { label: '💑 Copine', data: dataCopine, backgroundColor: '#854F0BCC', borderRadius: 6 },
-        { label: '🤝 Partagé', data: dataPartage, backgroundColor: '#27500ACC', borderRadius: 6 },
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { labels: { color: textColor, font: { size: 11 }, boxWidth: 12 } },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR', {minimumFractionDigits:2})} €`
-          }
-        }
-      },
-      scales: {
-        x: { ticks: { color: textColor, font:{size:10} }, grid: { color: gridColor } },
-        y: { ticks: { color: textColor, font:{size:10}, callback: v => v+' €' }, grid: { color: gridColor }, beginAtZero: true }
-      }
-    }
-  });
-}
-
-async function removeBg(){
-  await SB.from('app_config').upsert({key:'bg_photo',value:''});
-  const ps=document.getElementById('pin-screen');
-  if(ps){ps.style.backgroundImage='';const ov=document.getElementById('pin-overlay');if(ov)ov.style.display='none';}
-  T('Photo supprimée');
-}
-
-async function AI(){await LD();render();setTimeout(drawChart, 100);}
-</script>
-</body>
-</html>// Graphique - historique (passé) + prédictions (futur)
-let chartInstance = null;
-function drawChart(){
-  if(typeof Chart==='undefined') return;
-  const canvas = document.getElementById('chart-mois');
-  if(!canvas) return;
-  if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
-
+ 
   const now = new Date();
   const curY = now.getFullYear();
-  const curM = now.getMonth(); // mars = 2
-
-  // ── 6 mois passés (historique réel) ──────────────────────────
-  const pastMonths = [];
-  for(let i = 5; i >= 0; i--){
-    const d = new Date(curY, curM - i, 1);
-    pastMonths.push({
-      y: d.getFullYear(), m: d.getMonth(),
-      label: d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-      moi:0, copine:0, partage:0
-    });
-  }
-
-  // Reconstituer les versements passés en remontant depuis l'échéance actuelle
-  G.rows.forEach(r => {
-    if(r.pays === 0) return;
-    const v = parseFloat(r.versement)||0;
-    if(!v) return;
-    const nextDue = new Date(r.due+'T12:00:00');
-    for(let p = 1; p <= r.pays; p++){
-      const paidDate = new Date(nextDue);
-      paidDate.setMonth(paidDate.getMonth() - p);
-      const slot = pastMonths.find(x => x.y===paidDate.getFullYear() && x.m===paidDate.getMonth());
-      if(!slot) continue;
-      const vIdx = r.pays - p;
-      let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
-        ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
-      if(r.partage) slot.partage += montant;
-      else if(r.acheteur==='Moi') slot.moi += montant;
-      else slot.copine += montant;
-    }
-  });
-
-  // ── 6 mois futurs = les 6 mois qui suivent le mois actuel ────
-  const futureMonths = [];
-  if(G.sf){
-    for(let i = 1; i <= 6; i++){
-      const d = new Date(curY, curM + i, 1); // avril, mai, juin...
-      futureMonths.push({
-        y: d.getFullYear(), m: d.getMonth(),
-        label: d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-        moi:0, copine:0, partage:0
-      });
-    }
-
-    // Pour chaque achat actif, distribuer les versements restants mois par mois
-    G.rows.forEach(r => {
-      const rest = r.total_inst - r.pays;
-      if(rest <= 0) return;
-      const v = parseFloat(r.versement)||0;
-      if(!v) return;
-
-      // Le prochain versement tombe le mois de r.due
-      // Les suivants : +1 mois, +2 mois, etc.
-      for(let p = 0; p < rest; p++){
-        const dueDate = new Date(r.due+'T12:00:00');
-        dueDate.setMonth(dueDate.getMonth() + p);
-        const slot = futureMonths.find(x => x.y===dueDate.getFullYear() && x.m===dueDate.getMonth());
-        if(!slot) continue;
-        const vIdx = r.pays + p;
-        let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
-          ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
-        if(r.partage) slot.partage += montant;
-        else if(r.acheteur==='Moi') slot.moi += montant;
-        else slot.copine += montant;
-      }
-    });
-  }
-
-  const allMonths = [...pastMonths, ...futureMonths];
-  const isFuture = allMonths.map((_,i) => i >= pastMonths.length);
-  const labels    = allMonths.map((x,i) => isFuture[i] ? x.label+' ✦' : x.label);
-  const dataMoi     = allMonths.map(x => Math.round(x.moi*100)/100);
-  const dataCopine  = allMonths.map(x => Math.round(x.copine*100)/100);
-  const dataPartage = allMonths.map(x => Math.round(x.partage*100)/100);
-
-  const moiColors    = isFuture.map(f => f ? '#185FA555' : '#185FA5CC');
-  const copineColors = isFuture.map(f => f ? '#854F0B55' : '#854F0BCC');
-  const partageColors= isFuture.map(f => f ? '#27500A55' : '#27500ACC');
-
-  const dark = document.body.classList.contains('dark');
-  const textColor = dark ? '#94a3b8' : '#718096';
-  const gridColor = dark ? '#334155' : '#e2e8f0';
-
-  // Plugin ligne de séparation
-  const sepPlugin = {
-    id:'sep',
-    afterDraw(chart){
-      if(!G.sf||pastMonths.length===0) return;
-      const {ctx,chartArea,scales} = chart;
-      const sepX = (scales.x.getPixelForValue(pastMonths.length-1) + scales.x.getPixelForValue(pastMonths.length)) / 2;
-      ctx.save();
-      ctx.strokeStyle = dark?'#64748b':'#94a3b8';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([5,4]);
-      ctx.beginPath();
-      ctx.moveTo(sepX, chartArea.top);
-      ctx.lineTo(sepX, chartArea.bottom);
-      ctx.stroke();
-      ctx.fillStyle = dark?'#64748b':'#94a3b8';
-      ctx.font = '10px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText('Prédictions →', sepX+4, chartArea.top+13);
-      ctx.restore();
-    }
-  };
-
-  chartInstance = new Chart(canvas, {
-    type: 'bar',
-    plugins: [sepPlugin],
-    data: {
-      labels,
-      datasets: [
-        {label:'👤 Moi',    data:dataMoi,     backgroundColor:moiColors,     borderRadius:4},
-        {label:'💑 Copine', data:dataCopine,  backgroundColor:copineColors,  borderRadius:4},
-        {label:'🤝 Partagé',data:dataPartage, backgroundColor:partageColors, borderRadius:4},
-      ]
-    },
-    options:{
-      responsive:true,
-      plugins:{
-        legend:{labels:{color:textColor,font:{size:11},boxWidth:12}},
-        tooltip:{callbacks:{
-          label: ctx => {
-            const f = isFuture[ctx.dataIndex];
-            return ` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2})} €${f?' (prévu)':''}`;
-          }
-        }}
-      },
-      scales:{
-        x:{ticks:{color:textColor,font:{size:10}},grid:{color:gridColor}},
-        y:{ticks:{color:textColor,font:{size:10},callback:v=>v+' €'},grid:{color:gridColor},beginAtZero:true}
-      }
-    }
-  });
-}
-
-async function removeBg){
-  await SB.from('app_config').upsert({key:'bg_photo',value:''});
-  const ps=document.getElementById('pin-screen');
-  if(ps){ps.style.backgroundImage='';const ov=document.getElementById('pin-overlay');if(ov)ov.style.display='none';}
-  T('Photo supprimée');
-}
-
-async function AI(){await LD();render();setTimeout(drawChart, 100);}
-</script>
-</body>
-</html>// Graphique
-// sf=false → 6 prochains mois (versements à venir)
-// sf=true  → 6 derniers mois (historique payé)
-let chartInstance = null;
-function drawChart(){
-  if(typeof Chart==='undefined') return;
-  const canvas = document.getElementById('chart-mois');
-  if(!canvas) return;
-  if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
-
-  const now = new Date();
-  const curY = now.getFullYear();
-  const curM = now.getMonth(); // mars = 2
-
+  const curM = now.getMonth();
   const months = [];
-
+ 
   if(!G.sf){
-    // ── MODE DÉFAUT : 6 prochains mois (à partir du mois suivant) ──
+    // 6 PROCHAINS mois (avr, mai, juin, juil, aout, sept si on est en mars)
     for(let i = 1; i <= 6; i++){
       const d = new Date(curY, curM + i, 1);
-      months.push({
-        y:d.getFullYear(), m:d.getMonth(),
+      months.push({ y:d.getFullYear(), m:d.getMonth(),
         label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-        moi:0, copine:0, partage:0
-      });
+        moi:0, copine:0, partage:0 });
     }
-    // Calculer ce qui sera dû dans ces mois selon les versements restants
+    // Remplir avec les versements restants à payer
     G.rows.forEach(r => {
       const rest = r.total_inst - r.pays;
       if(rest <= 0) return;
       const v = parseFloat(r.versement)||0;
       if(!v) return;
-      // r.due = prochaine échéance (ex: avril si 3/4 et on est en mars)
-      // les versements restants tombent en avril, mai, juin...
       for(let p = 0; p < rest; p++){
         const dueDate = new Date(r.due+'T12:00:00');
         dueDate.setMonth(dueDate.getMonth() + p);
@@ -1065,16 +796,13 @@ function drawChart(){
       }
     });
   } else {
-    // ── MODE HISTORIQUE : 6 derniers mois (versements déjà payés) ──
+    // 6 DERNIERS mois (historique payé)
     for(let i = 5; i >= 0; i--){
       const d = new Date(curY, curM - i, 1);
-      months.push({
-        y:d.getFullYear(), m:d.getMonth(),
+      months.push({ y:d.getFullYear(), m:d.getMonth(),
         label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-        moi:0, copine:0, partage:0
-      });
+        moi:0, copine:0, partage:0 });
     }
-    // Reconstituer les versements passés en remontant depuis l'échéance actuelle
     G.rows.forEach(r => {
       if(r.pays === 0) return;
       const v = parseFloat(r.versement)||0;
@@ -1094,20 +822,19 @@ function drawChart(){
       }
     });
   }
-
+ 
   const dark = document.body.classList.contains('dark');
   const textColor = dark ? '#94a3b8' : '#718096';
   const gridColor = dark ? '#334155' : '#e2e8f0';
-  const barColor = G.sf ? 'CC' : 'AA'; // un peu plus transparent pour le futur
-
+ 
   chartInstance = new Chart(canvas, {
     type:'bar',
     data:{
       labels: months.map(x=>x.label),
       datasets:[
-        {label:'👤 Moi',    data:months.map(x=>Math.round(x.moi*100)/100),     backgroundColor:'#185FA5'+barColor, borderRadius:4},
-        {label:'💑 Copine', data:months.map(x=>Math.round(x.copine*100)/100),  backgroundColor:'#854F0B'+barColor, borderRadius:4},
-        {label:'🤝 Partagé',data:months.map(x=>Math.round(x.partage*100)/100), backgroundColor:'#27500A'+barColor, borderRadius:4},
+        {label:'👤 Moi',    data:months.map(x=>Math.round(x.moi*100)/100),     backgroundColor:'#185FA5CC', borderRadius:4},
+        {label:'💑 Copine', data:months.map(x=>Math.round(x.copine*100)/100),  backgroundColor:'#854F0BCC', borderRadius:4},
+        {label:'🤝 Partagé',data:months.map(x=>Math.round(x.partage*100)/100), backgroundColor:'#27500ACC', borderRadius:4},
       ]
     },
     options:{
@@ -1125,479 +852,13 @@ function drawChart(){
     }
   });
 }
-
 async function removeBg(){
   await SB.from('app_config').upsert({key:'bg_photo',value:''});
   const ps=document.getElementById('pin-screen');
   if(ps){ps.style.backgroundImage='';const ov=document.getElementById('pin-overlay');if(ov)ov.style.display='none';}
   T('Photo supprimée');
 }
-
-async function AI(){await LD();render();setTimeout(drawChart, 100);}
-</script>
-</body>
-</html>// Graphique - historique (passé) + prédictions (futur)
-let chartInstance = null;
-function drawChart(){
-  if(typeof Chart==='undefined') return;
-  const canvas = document.getElementById('chart-mois');
-  if(!canvas) return;
-  if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
-
-  const now = new Date();
-  const curY = now.getFullYear();
-  const curM = now.getMonth(); // mars = 2
-
-  // ── 6 mois passés (historique réel) ──────────────────────────
-  const pastMonths = [];
-  for(let i = 5; i >= 0; i--){
-    const d = new Date(curY, curM - i, 1);
-    pastMonths.push({
-      y: d.getFullYear(), m: d.getMonth(),
-      label: d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-      moi:0, copine:0, partage:0
-    });
-  }
-
-  // Reconstituer les versements passés en remontant depuis l'échéance actuelle
-  G.rows.forEach(r => {
-    if(r.pays === 0) return;
-    const v = parseFloat(r.versement)||0;
-    if(!v) return;
-    const nextDue = new Date(r.due+'T12:00:00');
-    for(let p = 1; p <= r.pays; p++){
-      const paidDate = new Date(nextDue);
-      paidDate.setMonth(paidDate.getMonth() - p);
-      const slot = pastMonths.find(x => x.y===paidDate.getFullYear() && x.m===paidDate.getMonth());
-      if(!slot) continue;
-      const vIdx = r.pays - p;
-      let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
-        ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
-      if(r.partage) slot.partage += montant;
-      else if(r.acheteur==='Moi') slot.moi += montant;
-      else slot.copine += montant;
-    }
-  });
-
-  // ── 6 mois futurs = les 6 mois qui suivent le mois actuel ────
-  const futureMonths = [];
-  if(G.sf){
-    for(let i = 1; i <= 6; i++){
-      const d = new Date(curY, curM + i, 1); // avril, mai, juin...
-      futureMonths.push({
-        y: d.getFullYear(), m: d.getMonth(),
-        label: d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-        moi:0, copine:0, partage:0
-      });
-    }
-
-    // Pour chaque achat actif, distribuer les versements restants mois par mois
-    G.rows.forEach(r => {
-      const rest = r.total_inst - r.pays;
-      if(rest <= 0) return;
-      const v = parseFloat(r.versement)||0;
-      if(!v) return;
-
-      // Le prochain versement tombe le mois de r.due
-      // Les suivants : +1 mois, +2 mois, etc.
-      for(let p = 0; p < rest; p++){
-        const dueDate = new Date(r.due+'T12:00:00');
-        dueDate.setMonth(dueDate.getMonth() + p);
-        const slot = futureMonths.find(x => x.y===dueDate.getFullYear() && x.m===dueDate.getMonth());
-        if(!slot) continue;
-        const vIdx = r.pays + p;
-        let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
-          ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
-        if(r.partage) slot.partage += montant;
-        else if(r.acheteur==='Moi') slot.moi += montant;
-        else slot.copine += montant;
-      }
-    });
-  }
-
-  const allMonths = [...pastMonths, ...futureMonths];
-  const isFuture = allMonths.map((_,i) => i >= pastMonths.length);
-  const labels    = allMonths.map((x,i) => isFuture[i] ? x.label+' ✦' : x.label);
-  const dataMoi     = allMonths.map(x => Math.round(x.moi*100)/100);
-  const dataCopine  = allMonths.map(x => Math.round(x.copine*100)/100);
-  const dataPartage = allMonths.map(x => Math.round(x.partage*100)/100);
-
-  const moiColors    = isFuture.map(f => f ? '#185FA555' : '#185FA5CC');
-  const copineColors = isFuture.map(f => f ? '#854F0B55' : '#854F0BCC');
-  const partageColors= isFuture.map(f => f ? '#27500A55' : '#27500ACC');
-
-  const dark = document.body.classList.contains('dark');
-  const textColor = dark ? '#94a3b8' : '#718096';
-  const gridColor = dark ? '#334155' : '#e2e8f0';
-
-  // Plugin ligne de séparation
-  const sepPlugin = {
-    id:'sep',
-    afterDraw(chart){
-      if(!G.sf||pastMonths.length===0) return;
-      const {ctx,chartArea,scales} = chart;
-      const sepX = (scales.x.getPixelForValue(pastMonths.length-1) + scales.x.getPixelForValue(pastMonths.length)) / 2;
-      ctx.save();
-      ctx.strokeStyle = dark?'#64748b':'#94a3b8';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([5,4]);
-      ctx.beginPath();
-      ctx.moveTo(sepX, chartArea.top);
-      ctx.lineTo(sepX, chartArea.bottom);
-      ctx.stroke();
-      ctx.fillStyle = dark?'#64748b':'#94a3b8';
-      ctx.font = '10px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText('Prédictions →', sepX+4, chartArea.top+13);
-      ctx.restore();
-    }
-  };
-
-  chartInstance = new Chart(canvas, {
-    type: 'bar',
-    plugins: [sepPlugin],
-    data: {
-      labels,
-      datasets: [
-        {label:'👤 Moi',    data:dataMoi,     backgroundColor:moiColors,     borderRadius:4},
-        {label:'💑 Copine', data:dataCopine,  backgroundColor:copineColors,  borderRadius:4},
-        {label:'🤝 Partagé',data:dataPartage, backgroundColor:partageColors, borderRadius:4},
-      ]
-    },
-    options:{
-      responsive:true,
-      plugins:{
-        legend:{labels:{color:textColor,font:{size:11},boxWidth:12}},
-        tooltip:{callbacks:{
-          label: ctx => {
-            const f = isFuture[ctx.dataIndex];
-            return ` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2})} €${f?' (prévu)':''}`;
-          }
-        }}
-      },
-      scales:{
-        x:{ticks:{color:textColor,font:{size:10}},grid:{color:gridColor}},
-        y:{ticks:{color:textColor,font:{size:10},callback:v=>v+' €'},grid:{color:gridColor},beginAtZero:true}
-      }
-    }
-  });
-}
-
-async function removeBg){
-  await SB.from('app_config').upsert({key:'bg_photo',value:''});
-  const ps=document.getElementById('pin-screen');
-  if(ps){ps.style.backgroundImage='';const ov=document.getElementById('pin-overlay');if(ov)ov.style.display='none';}
-  T('Photo supprimée');
-}
-
-async function AI(){await LD();render();setTimeout(drawChart, 100);}
-</script>
-</body>
-</html>// Graphique - historique + prédictions futures
-let chartInstance = null;
-function drawChart(){
-  if(typeof Chart==='undefined') return;
-  const canvas = document.getElementById('chart-mois');
-  if(!canvas) return;
-  if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
-
-  const now = new Date();
-  const curY = now.getFullYear();
-  const curM = now.getMonth();
-
-  // Construire la liste des mois à afficher
-  const allMonths = [];
-
-  // 6 mois passés (incluant le mois actuel)
-  for(let i = 5; i >= 0; i--){
-    const d = new Date(curY, curM - i, 1);
-    allMonths.push({
-      y:d.getFullYear(), m:d.getMonth(),
-      label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-      moi:0, copine:0, partage:0, future:false
-    });
-  }
-
-  // 6 mois futurs si activé (mois suivants uniquement)
-  if(G.sf){
-    for(let i = 1; i <= 6; i++){
-      const d = new Date(curY, curM + i, 1);
-      allMonths.push({
-        y:d.getFullYear(), m:d.getMonth(),
-        label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-        moi:0, copine:0, partage:0, future:true
-      });
-    }
-  }
-
-  // Remplir les mois passés avec l'historique réel
-  G.rows.forEach(r => {
-    if(r.pays === 0) return;
-    const v = parseFloat(r.versement)||0;
-    if(!v) return;
-    const nextDue = new Date(r.due+'T12:00:00');
-    for(let p = 1; p <= r.pays; p++){
-      const paidDate = new Date(nextDue.getTime());
-      paidDate.setMonth(paidDate.getMonth() - p);
-      const slot = allMonths.find(x => !x.future && x.y===paidDate.getFullYear() && x.m===paidDate.getMonth());
-      if(!slot) continue;
-      const vIdx = r.pays - p;
-      let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
-        ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
-      if(r.partage) slot.partage += montant;
-      else if(r.acheteur==='Moi') slot.moi += montant;
-      else slot.copine += montant;
-    }
-  });
-
-  // Remplir les mois futurs avec les versements attendus
-  if(G.sf){
-    G.rows.forEach(r => {
-      const rest = r.total_inst - r.pays;
-      if(rest <= 0) return;
-      const v = parseFloat(r.versement)||0;
-      if(!v) return;
-      // Simuler les versements restants à partir de r.due
-      for(let p = 0; p < rest; p++){
-        const dueDate = new Date(r.due+'T12:00:00');
-        dueDate.setMonth(dueDate.getMonth() + p);
-        const slot = allMonths.find(x => x.future && x.y===dueDate.getFullYear() && x.m===dueDate.getMonth());
-        if(!slot) continue;
-        const vIdx = r.pays + p;
-        let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
-          ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
-        if(r.partage) slot.partage += montant;
-        else if(r.acheteur==='Moi') slot.moi += montant;
-        else slot.copine += montant;
-      }
-    });
-  }
-
-  const dark = document.body.classList.contains('dark');
-  const textColor = dark ? '#94a3b8' : '#718096';
-  const gridColor = dark ? '#334155' : '#e2e8f0';
-
-  const labels     = allMonths.map(x => x.future ? x.label+' ✦' : x.label);
-  const dataMoi    = allMonths.map(x => Math.round(x.moi*100)/100);
-  const dataCopine = allMonths.map(x => Math.round(x.copine*100)/100);
-  const dataPartage= allMonths.map(x => Math.round(x.partage*100)/100);
-  const moiCol     = allMonths.map(x => x.future ? '#185FA550' : '#185FA5CC');
-  const copineCol  = allMonths.map(x => x.future ? '#854F0B50' : '#854F0BCC');
-  const partageCol = allMonths.map(x => x.future ? '#27500A50' : '#27500ACC');
-
-  // Plugin ligne de séparation passé/futur
-  const sepPlugin = {
-    id:'sep',
-    afterDraw(chart){
-      if(!G.sf) return;
-      const {ctx,chartArea,scales} = chart;
-      const x1 = scales.x.getPixelForValue(5);
-      const x2 = scales.x.getPixelForValue(6);
-      const sepX = (x1+x2)/2;
-      ctx.save();
-      ctx.strokeStyle = dark?'#64748b':'#94a3b8';
-      ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
-      ctx.beginPath(); ctx.moveTo(sepX,chartArea.top); ctx.lineTo(sepX,chartArea.bottom); ctx.stroke();
-      ctx.fillStyle=dark?'#94a3b8':'#718096'; ctx.font='10px sans-serif'; ctx.textAlign='left';
-      ctx.fillText('Prédictions →', sepX+4, chartArea.top+13);
-      ctx.restore();
-    }
-  };
-
-  chartInstance = new Chart(canvas, {
-    type:'bar',
-    plugins:[sepPlugin],
-    data:{
-      labels,
-      datasets:[
-        {label:'👤 Moi',    data:dataMoi,     backgroundColor:moiCol,     borderRadius:4},
-        {label:'💑 Copine', data:dataCopine,  backgroundColor:copineCol,  borderRadius:4},
-        {label:'🤝 Partagé',data:dataPartage, backgroundColor:partageCol, borderRadius:4},
-      ]
-    },
-    options:{
-      responsive:true,
-      plugins:{
-        legend:{labels:{color:textColor,font:{size:11},boxWidth:12}},
-        tooltip:{callbacks:{
-          label: ctx=>{
-            const f=allMonths[ctx.dataIndex]?.future;
-            return ` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2})} €${f?' (prévu)':''}`;
-          }
-        }}
-      },
-      scales:{
-        x:{ticks:{color:textColor,font:{size:10}},grid:{color:gridColor}},
-        y:{ticks:{color:textColor,font:{size:10},callback:v=>v+' €'},grid:{color:gridColor},beginAtZero:true}
-      }
-    }
-  });
-}
-
-async function removeBg(){
-  await SB.from('app_config').upsert({key:'bg_photo',value:''});
-  const ps=document.getElementById('pin-screen');
-  if(ps){ps.style.backgroundImage='';const ov=document.getElementById('pin-overlay');if(ov)ov.style.display='none';}
-  T('Photo supprimée');
-}
-
-async function AI(){await LD();render();setTimeout(drawChart, 100);}
-</script>
-</body>
-</html>// Graphique - historique (passé) + prédictions (futur)
-let chartInstance = null;
-function drawChart(){
-  if(typeof Chart==='undefined') return;
-  const canvas = document.getElementById('chart-mois');
-  if(!canvas) return;
-  if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
-
-  const now = new Date();
-  const curY = now.getFullYear();
-  const curM = now.getMonth(); // mars = 2
-
-  // ── 6 mois passés (historique réel) ──────────────────────────
-  const pastMonths = [];
-  for(let i = 5; i >= 0; i--){
-    const d = new Date(curY, curM - i, 1);
-    pastMonths.push({
-      y: d.getFullYear(), m: d.getMonth(),
-      label: d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-      moi:0, copine:0, partage:0
-    });
-  }
-
-  // Reconstituer les versements passés en remontant depuis l'échéance actuelle
-  G.rows.forEach(r => {
-    if(r.pays === 0) return;
-    const v = parseFloat(r.versement)||0;
-    if(!v) return;
-    const nextDue = new Date(r.due+'T12:00:00');
-    for(let p = 1; p <= r.pays; p++){
-      const paidDate = new Date(nextDue);
-      paidDate.setMonth(paidDate.getMonth() - p);
-      const slot = pastMonths.find(x => x.y===paidDate.getFullYear() && x.m===paidDate.getMonth());
-      if(!slot) continue;
-      const vIdx = r.pays - p;
-      let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
-        ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
-      if(r.partage) slot.partage += montant;
-      else if(r.acheteur==='Moi') slot.moi += montant;
-      else slot.copine += montant;
-    }
-  });
-
-  // ── 6 mois futurs = les 6 mois qui suivent le mois actuel ────
-  const futureMonths = [];
-  if(G.sf){
-    for(let i = 1; i <= 6; i++){
-      const d = new Date(curY, curM + i, 1); // avril, mai, juin...
-      futureMonths.push({
-        y: d.getFullYear(), m: d.getMonth(),
-        label: d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-        moi:0, copine:0, partage:0
-      });
-    }
-
-    // Pour chaque achat actif, distribuer les versements restants mois par mois
-    G.rows.forEach(r => {
-      const rest = r.total_inst - r.pays;
-      if(rest <= 0) return;
-      const v = parseFloat(r.versement)||0;
-      if(!v) return;
-
-      // Le prochain versement tombe le mois de r.due
-      // Les suivants : +1 mois, +2 mois, etc.
-      for(let p = 0; p < rest; p++){
-        const dueDate = new Date(r.due+'T12:00:00');
-        dueDate.setMonth(dueDate.getMonth() + p);
-        const slot = futureMonths.find(x => x.y===dueDate.getFullYear() && x.m===dueDate.getMonth());
-        if(!slot) continue;
-        const vIdx = r.pays + p;
-        let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
-          ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
-        if(r.partage) slot.partage += montant;
-        else if(r.acheteur==='Moi') slot.moi += montant;
-        else slot.copine += montant;
-      }
-    });
-  }
-
-  const allMonths = [...pastMonths, ...futureMonths];
-  const isFuture = allMonths.map((_,i) => i >= pastMonths.length);
-  const labels    = allMonths.map((x,i) => isFuture[i] ? x.label+' ✦' : x.label);
-  const dataMoi     = allMonths.map(x => Math.round(x.moi*100)/100);
-  const dataCopine  = allMonths.map(x => Math.round(x.copine*100)/100);
-  const dataPartage = allMonths.map(x => Math.round(x.partage*100)/100);
-
-  const moiColors    = isFuture.map(f => f ? '#185FA555' : '#185FA5CC');
-  const copineColors = isFuture.map(f => f ? '#854F0B55' : '#854F0BCC');
-  const partageColors= isFuture.map(f => f ? '#27500A55' : '#27500ACC');
-
-  const dark = document.body.classList.contains('dark');
-  const textColor = dark ? '#94a3b8' : '#718096';
-  const gridColor = dark ? '#334155' : '#e2e8f0';
-
-  // Plugin ligne de séparation
-  const sepPlugin = {
-    id:'sep',
-    afterDraw(chart){
-      if(!G.sf||pastMonths.length===0) return;
-      const {ctx,chartArea,scales} = chart;
-      const sepX = (scales.x.getPixelForValue(pastMonths.length-1) + scales.x.getPixelForValue(pastMonths.length)) / 2;
-      ctx.save();
-      ctx.strokeStyle = dark?'#64748b':'#94a3b8';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([5,4]);
-      ctx.beginPath();
-      ctx.moveTo(sepX, chartArea.top);
-      ctx.lineTo(sepX, chartArea.bottom);
-      ctx.stroke();
-      ctx.fillStyle = dark?'#64748b':'#94a3b8';
-      ctx.font = '10px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText('Prédictions →', sepX+4, chartArea.top+13);
-      ctx.restore();
-    }
-  };
-
-  chartInstance = new Chart(canvas, {
-    type: 'bar',
-    plugins: [sepPlugin],
-    data: {
-      labels,
-      datasets: [
-        {label:'👤 Moi',    data:dataMoi,     backgroundColor:moiColors,     borderRadius:4},
-        {label:'💑 Copine', data:dataCopine,  backgroundColor:copineColors,  borderRadius:4},
-        {label:'🤝 Partagé',data:dataPartage, backgroundColor:partageColors, borderRadius:4},
-      ]
-    },
-    options:{
-      responsive:true,
-      plugins:{
-        legend:{labels:{color:textColor,font:{size:11},boxWidth:12}},
-        tooltip:{callbacks:{
-          label: ctx => {
-            const f = isFuture[ctx.dataIndex];
-            return ` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2})} €${f?' (prévu)':''}`;
-          }
-        }}
-      },
-      scales:{
-        x:{ticks:{color:textColor,font:{size:10}},grid:{color:gridColor}},
-        y:{ticks:{color:textColor,font:{size:10},callback:v=>v+' €'},grid:{color:gridColor},beginAtZero:true}
-      }
-    }
-  });
-}
-
-async function removeBg){
-  await SB.from('app_config').upsert({key:'bg_photo',value:''});
-  const ps=document.getElementById('pin-screen');
-  if(ps){ps.style.backgroundImage='';const ov=document.getElementById('pin-overlay');if(ov)ov.style.display='none';}
-  T('Photo supprimée');
-}
-
+ 
 async function AI(){await LD();render();setTimeout(drawChart, 100);}
 </script>
 </body>
