@@ -418,13 +418,12 @@ function render(){
 </div>
 <div class="chart-box">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:8px">
-    <h3 style="margin:0">📊 ${G.sf ? "6 mois passés + 6 prédictions" : "6 derniers mois"}</h3>
-    <button onclick="G.sf=!G.sf;render()" style="padding:4px 12px;border-radius:20px;border:1px solid ${G.sf?'#185FA5':'var(--border)'};background:${G.sf?'#185FA5':'var(--card)'};color:${G.sf?'#fff':'var(--text3)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
-      🔮 ${G.sf?'Cacher les prédictions':'Voir prédictions (6 mois)'}
+    <h3 style="margin:0">📊 ${G.sf?'6 derniers mois':'6 prochains mois'}</h3>
+    <button onclick="G.sf=!G.sf;render()" style="padding:4px 12px;border-radius:20px;border:1px solid ${G.sf?'var(--border)':'#185FA5'};background:${G.sf?'var(--card)':'#185FA5'};color:${G.sf?'var(--text3)':'#fff'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
+      ${G.sf?'📅 Voir les prochains mois':'🕐 Voir l\'historique'}
     </button>
   </div>
   <canvas id="chart-mois" height="180"></canvas>
-  ${G.sf?'<div style="font-size:10px;color:var(--text3);margin-top:6px">* Les barres transparentes sont des prédictions basées sur tes échéances à venir</div>':''}
 </div>
 ${MB(0)}${MB(1)}
 ${al.length?`<div class="alerts">${al.map(r=>{const c=calc(r);const cls=c.st==='retard'?'a-urg':'a-wrn';const txt=c.st==='retard'?`${Math.abs(c.j)}j retard`:`${c.j}j`;return`<div class="alert ${cls}"><div class="adot"></div><strong>${r.marchand}</strong> — ${fd(r.due)} — ${f(c.cv)} — ${txt}</div>`;}).join('')}</div>`:''}
@@ -846,6 +845,282 @@ function drawChart(){
       scales: {
         x: { ticks: { color: textColor, font:{size:10} }, grid: { color: gridColor } },
         y: { ticks: { color: textColor, font:{size:10}, callback: v => v+' €' }, grid: { color: gridColor }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+async function removeBg(){
+  await SB.from('app_config').upsert({key:'bg_photo',value:''});
+  const ps=document.getElementById('pin-screen');
+  if(ps){ps.style.backgroundImage='';const ov=document.getElementById('pin-overlay');if(ov)ov.style.display='none';}
+  T('Photo supprimée');
+}
+
+async function AI(){await LD();render();setTimeout(drawChart, 100);}
+</script>
+</body>
+</html>// Graphique - historique (passé) + prédictions (futur)
+let chartInstance = null;
+function drawChart(){
+  if(typeof Chart==='undefined') return;
+  const canvas = document.getElementById('chart-mois');
+  if(!canvas) return;
+  if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+
+  const now = new Date();
+  const curY = now.getFullYear();
+  const curM = now.getMonth(); // mars = 2
+
+  // ── 6 mois passés (historique réel) ──────────────────────────
+  const pastMonths = [];
+  for(let i = 5; i >= 0; i--){
+    const d = new Date(curY, curM - i, 1);
+    pastMonths.push({
+      y: d.getFullYear(), m: d.getMonth(),
+      label: d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
+      moi:0, copine:0, partage:0
+    });
+  }
+
+  // Reconstituer les versements passés en remontant depuis l'échéance actuelle
+  G.rows.forEach(r => {
+    if(r.pays === 0) return;
+    const v = parseFloat(r.versement)||0;
+    if(!v) return;
+    const nextDue = new Date(r.due+'T12:00:00');
+    for(let p = 1; p <= r.pays; p++){
+      const paidDate = new Date(nextDue);
+      paidDate.setMonth(paidDate.getMonth() - p);
+      const slot = pastMonths.find(x => x.y===paidDate.getFullYear() && x.m===paidDate.getMonth());
+      if(!slot) continue;
+      const vIdx = r.pays - p;
+      let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
+        ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
+      if(r.partage) slot.partage += montant;
+      else if(r.acheteur==='Moi') slot.moi += montant;
+      else slot.copine += montant;
+    }
+  });
+
+  // ── 6 mois futurs = les 6 mois qui suivent le mois actuel ────
+  const futureMonths = [];
+  if(G.sf){
+    for(let i = 1; i <= 6; i++){
+      const d = new Date(curY, curM + i, 1); // avril, mai, juin...
+      futureMonths.push({
+        y: d.getFullYear(), m: d.getMonth(),
+        label: d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
+        moi:0, copine:0, partage:0
+      });
+    }
+
+    // Pour chaque achat actif, distribuer les versements restants mois par mois
+    G.rows.forEach(r => {
+      const rest = r.total_inst - r.pays;
+      if(rest <= 0) return;
+      const v = parseFloat(r.versement)||0;
+      if(!v) return;
+
+      // Le prochain versement tombe le mois de r.due
+      // Les suivants : +1 mois, +2 mois, etc.
+      for(let p = 0; p < rest; p++){
+        const dueDate = new Date(r.due+'T12:00:00');
+        dueDate.setMonth(dueDate.getMonth() + p);
+        const slot = futureMonths.find(x => x.y===dueDate.getFullYear() && x.m===dueDate.getMonth());
+        if(!slot) continue;
+        const vIdx = r.pays + p;
+        let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
+          ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
+        if(r.partage) slot.partage += montant;
+        else if(r.acheteur==='Moi') slot.moi += montant;
+        else slot.copine += montant;
+      }
+    });
+  }
+
+  const allMonths = [...pastMonths, ...futureMonths];
+  const isFuture = allMonths.map((_,i) => i >= pastMonths.length);
+  const labels    = allMonths.map((x,i) => isFuture[i] ? x.label+' ✦' : x.label);
+  const dataMoi     = allMonths.map(x => Math.round(x.moi*100)/100);
+  const dataCopine  = allMonths.map(x => Math.round(x.copine*100)/100);
+  const dataPartage = allMonths.map(x => Math.round(x.partage*100)/100);
+
+  const moiColors    = isFuture.map(f => f ? '#185FA555' : '#185FA5CC');
+  const copineColors = isFuture.map(f => f ? '#854F0B55' : '#854F0BCC');
+  const partageColors= isFuture.map(f => f ? '#27500A55' : '#27500ACC');
+
+  const dark = document.body.classList.contains('dark');
+  const textColor = dark ? '#94a3b8' : '#718096';
+  const gridColor = dark ? '#334155' : '#e2e8f0';
+
+  // Plugin ligne de séparation
+  const sepPlugin = {
+    id:'sep',
+    afterDraw(chart){
+      if(!G.sf||pastMonths.length===0) return;
+      const {ctx,chartArea,scales} = chart;
+      const sepX = (scales.x.getPixelForValue(pastMonths.length-1) + scales.x.getPixelForValue(pastMonths.length)) / 2;
+      ctx.save();
+      ctx.strokeStyle = dark?'#64748b':'#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5,4]);
+      ctx.beginPath();
+      ctx.moveTo(sepX, chartArea.top);
+      ctx.lineTo(sepX, chartArea.bottom);
+      ctx.stroke();
+      ctx.fillStyle = dark?'#64748b':'#94a3b8';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('Prédictions →', sepX+4, chartArea.top+13);
+      ctx.restore();
+    }
+  };
+
+  chartInstance = new Chart(canvas, {
+    type: 'bar',
+    plugins: [sepPlugin],
+    data: {
+      labels,
+      datasets: [
+        {label:'👤 Moi',    data:dataMoi,     backgroundColor:moiColors,     borderRadius:4},
+        {label:'💑 Copine', data:dataCopine,  backgroundColor:copineColors,  borderRadius:4},
+        {label:'🤝 Partagé',data:dataPartage, backgroundColor:partageColors, borderRadius:4},
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{labels:{color:textColor,font:{size:11},boxWidth:12}},
+        tooltip:{callbacks:{
+          label: ctx => {
+            const f = isFuture[ctx.dataIndex];
+            return ` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2})} €${f?' (prévu)':''}`;
+          }
+        }}
+      },
+      scales:{
+        x:{ticks:{color:textColor,font:{size:10}},grid:{color:gridColor}},
+        y:{ticks:{color:textColor,font:{size:10},callback:v=>v+' €'},grid:{color:gridColor},beginAtZero:true}
+      }
+    }
+  });
+}
+
+async function removeBg){
+  await SB.from('app_config').upsert({key:'bg_photo',value:''});
+  const ps=document.getElementById('pin-screen');
+  if(ps){ps.style.backgroundImage='';const ov=document.getElementById('pin-overlay');if(ov)ov.style.display='none';}
+  T('Photo supprimée');
+}
+
+async function AI(){await LD();render();setTimeout(drawChart, 100);}
+</script>
+</body>
+</html>// Graphique
+// sf=false → 6 prochains mois (versements à venir)
+// sf=true  → 6 derniers mois (historique payé)
+let chartInstance = null;
+function drawChart(){
+  if(typeof Chart==='undefined') return;
+  const canvas = document.getElementById('chart-mois');
+  if(!canvas) return;
+  if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+
+  const now = new Date();
+  const curY = now.getFullYear();
+  const curM = now.getMonth(); // mars = 2
+
+  const months = [];
+
+  if(!G.sf){
+    // ── MODE DÉFAUT : 6 prochains mois (à partir du mois suivant) ──
+    for(let i = 1; i <= 6; i++){
+      const d = new Date(curY, curM + i, 1);
+      months.push({
+        y:d.getFullYear(), m:d.getMonth(),
+        label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
+        moi:0, copine:0, partage:0
+      });
+    }
+    // Calculer ce qui sera dû dans ces mois selon les versements restants
+    G.rows.forEach(r => {
+      const rest = r.total_inst - r.pays;
+      if(rest <= 0) return;
+      const v = parseFloat(r.versement)||0;
+      if(!v) return;
+      // r.due = prochaine échéance (ex: avril si 3/4 et on est en mars)
+      // les versements restants tombent en avril, mai, juin...
+      for(let p = 0; p < rest; p++){
+        const dueDate = new Date(r.due+'T12:00:00');
+        dueDate.setMonth(dueDate.getMonth() + p);
+        const slot = months.find(x => x.y===dueDate.getFullYear() && x.m===dueDate.getMonth());
+        if(!slot) continue;
+        const vIdx = r.pays + p;
+        let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
+          ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
+        if(r.partage) slot.partage += montant;
+        else if(r.acheteur==='Moi') slot.moi += montant;
+        else slot.copine += montant;
+      }
+    });
+  } else {
+    // ── MODE HISTORIQUE : 6 derniers mois (versements déjà payés) ──
+    for(let i = 5; i >= 0; i--){
+      const d = new Date(curY, curM - i, 1);
+      months.push({
+        y:d.getFullYear(), m:d.getMonth(),
+        label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
+        moi:0, copine:0, partage:0
+      });
+    }
+    // Reconstituer les versements passés en remontant depuis l'échéance actuelle
+    G.rows.forEach(r => {
+      if(r.pays === 0) return;
+      const v = parseFloat(r.versement)||0;
+      if(!v) return;
+      const nextDue = new Date(r.due+'T12:00:00');
+      for(let p = 1; p <= r.pays; p++){
+        const paidDate = new Date(nextDue.getTime());
+        paidDate.setMonth(paidDate.getMonth() - p);
+        const slot = months.find(x => x.y===paidDate.getFullYear() && x.m===paidDate.getMonth());
+        if(!slot) continue;
+        const vIdx = r.pays - p;
+        let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
+          ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
+        if(r.partage) slot.partage += montant;
+        else if(r.acheteur==='Moi') slot.moi += montant;
+        else slot.copine += montant;
+      }
+    });
+  }
+
+  const dark = document.body.classList.contains('dark');
+  const textColor = dark ? '#94a3b8' : '#718096';
+  const gridColor = dark ? '#334155' : '#e2e8f0';
+  const barColor = G.sf ? 'CC' : 'AA'; // un peu plus transparent pour le futur
+
+  chartInstance = new Chart(canvas, {
+    type:'bar',
+    data:{
+      labels: months.map(x=>x.label),
+      datasets:[
+        {label:'👤 Moi',    data:months.map(x=>Math.round(x.moi*100)/100),     backgroundColor:'#185FA5'+barColor, borderRadius:4},
+        {label:'💑 Copine', data:months.map(x=>Math.round(x.copine*100)/100),  backgroundColor:'#854F0B'+barColor, borderRadius:4},
+        {label:'🤝 Partagé',data:months.map(x=>Math.round(x.partage*100)/100), backgroundColor:'#27500A'+barColor, borderRadius:4},
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{labels:{color:textColor,font:{size:11},boxWidth:12}},
+        tooltip:{callbacks:{
+          label: ctx => ` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2})} €`
+        }}
+      },
+      scales:{
+        x:{ticks:{color:textColor,font:{size:10}},grid:{color:gridColor}},
+        y:{ticks:{color:textColor,font:{size:10},callback:v=>v+' €'},grid:{color:gridColor},beginAtZero:true}
       }
     }
   });
