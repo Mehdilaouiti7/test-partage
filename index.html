@@ -11,10 +11,23 @@
 <meta name="theme-color" content="#0f0c29">
 <title>MY Wallet 💛</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
+:root{
+  --bg:#f0f4f8;--card:#fff;--card-next:#fafafa;--border:#e2e8f0;
+  --text:#1a202c;--text2:#4a5568;--text3:#718096;
+  --input-bg:#fff;--pin-bg:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  --tab-bg:#fff;--tab-border:#e2e8f0;
+}
+.dark{
+  --bg:#0f172a;--card:#1e293b;--card-next:#162032;--border:#334155;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --input-bg:#1e293b;--pin-bg:linear-gradient(135deg,#020617,#0f0c29,#1e1b4b);
+  --tab-bg:#1e293b;--tab-border:#334155;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f8;color:#1a202c;min-height:100vh}
-#pin-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+#pin-screen{position:fixed;inset:0;background:var(--pin-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;overflow:hidden}
 #pin-screen h1{color:#fff;font-size:22px;font-weight:600}
 #pin-screen p{color:#90b8d8;font-size:14px}
 .pin-dots{display:flex;gap:16px}
@@ -28,8 +41,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:8px;flex-wrap:wrap}
 .topbar h1{font-size:18px;font-weight:600}.topbar h1 span{color:#185FA5}
 .topbar-r{display:flex;gap:6px}
-.btn{padding:7px 13px;border-radius:8px;border:1px solid #cbd5e0;background:#fff;color:#1a202c;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;touch-action:manipulation}
-.btn:active{background:#f0f4f8}
+.btn{padding:7px 13px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;touch-action:manipulation}
+.btn:active{opacity:.85}
 .btn-p{background:#185FA5;color:#fff;border-color:#185FA5}
 .btn-p:active{background:#0C447C}
 .btn-d{color:#A32D2D;border-color:#F09595}
@@ -39,17 +52,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-pay:disabled{background:#a0aec0;cursor:not-allowed}
 .btn-sm{padding:4px 9px;font-size:11px}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:1rem}
-.kpi{background:#fff;border-radius:10px;padding:.75rem;border:1px solid #e2e8f0;text-align:center}
-.kpi-l{font-size:10px;color:#718096;margin-bottom:3px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+.kpi{background:var(--card);border-radius:10px;padding:.75rem;border:1px solid var(--border);text-align:center}
+.kpi-l{font-size:10px;color:var(--text3);margin-bottom:3px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
 .kpi-v{font-size:16px;font-weight:700}
 .c-blue{color:#185FA5}.c-red{color:#A32D2D}.c-green{color:#276749}.c-amber{color:#854F0B}.c-purple{color:#534AB7}
-.mbox{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem;margin-bottom:1rem}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem}
 .mbox-t{font-size:13px;font-weight:600;margin-bottom:.75rem}
 .mcols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mcol h3{font-size:12px;font-weight:600;margin-bottom:.5rem;padding-bottom:5px;border-bottom:1px solid #f0f4f8}
-.mitem{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid #f7fafc}
+.mitem{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--border)}
 .mitem:last-child{border-bottom:none}
-.mtotal{display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding-top:6px;margin-top:4px;border-top:1px solid #e2e8f0}
+.mtotal{display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding-top:6px;margin-top:4px;border-top:1px solid var(--border)}
 .alerts{margin-bottom:1rem}
 .alert{padding:8px 12px;border-radius:8px;margin-bottom:5px;font-size:12px;border-left:3px solid;display:flex;align-items:center;gap:8px}
 .a-urg{background:#FAECE7;border-color:#D85A30;color:#4A1B0C}
@@ -57,66 +70,68 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .adot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .a-urg .adot{background:#D85A30}.a-wrn .adot{background:#BA7517}
 .sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:1rem}
-.sc{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:.9rem}
-.sc h3{font-size:12px;font-weight:600;margin-bottom:.5rem;padding-bottom:5px;border-bottom:1px solid #f0f4f8}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.9rem}
+.sc h3{font-size:12px;font-weight:600;margin-bottom:.5rem;padding-bottom:5px;border-bottom:1px solid var(--border)}
 .sr{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
-.sr span:first-child{color:#718096}.sr span:last-child{font-weight:600}
+.sr span:first-child{color:var(--text3)}.sr span:last-child{font-weight:600}
 .tabs{display:flex;gap:4px;margin-bottom:.6rem;flex-wrap:wrap}
-.tab{padding:5px 12px;border-radius:20px;border:1px solid #e2e8f0;background:#fff;font-size:11px;cursor:pointer;color:#718096;font-family:inherit;touch-action:manipulation}
+.tab{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;cursor:pointer;color:var(--text3);font-family:inherit;touch-action:manipulation}
 .tab.on{background:#185FA5;color:#fff;border-color:#185FA5}
 .filters{display:flex;gap:6px;margin-bottom:.75rem;flex-wrap:wrap;align-items:center}
-.filters select,.filters input{padding:6px 9px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#1a202c;font-size:12px;font-family:inherit}
+.filters select,.filters input{padding:6px 9px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-family:inherit}
 .cards{display:flex;flex-direction:column;gap:8px}
-.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:.9rem;cursor:pointer}
-.card:active{background:#f7fafc}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.9rem;cursor:pointer}
+.card:active{opacity:.9}
 .ch{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px}
 .ctitle{font-weight:600;font-size:14px}
-.cnote{font-size:11px;color:#a0aec0;margin-top:1px}
+.cnote{font-size:11px;color:var(--text3);margin-top:1px}
 .cbadges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px}
 .cgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
-.cl{color:#a0aec0;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+.cl{color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.3px}
 .cv{font-weight:600;font-size:13px;margin-top:1px}
-.pbar{height:4px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-top:3px}
+.pbar{height:4px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:3px}
 .pfill{height:100%;border-radius:4px}
 .ca{display:flex;gap:5px;flex-wrap:wrap}
-.twrap{overflow-x:auto;border-radius:12px;border:1px solid #e2e8f0;background:#fff}
+.twrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);background:var(--card)}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:#f7fafc;padding:8px 10px;text-align:left;font-weight:600;font-size:10px;color:#718096;border-bottom:1px solid #e2e8f0;white-space:nowrap;text-transform:uppercase}
-td{padding:8px 10px;border-bottom:1px solid #f0f4f8;vertical-align:middle}
+th{background:var(--bg);padding:8px 10px;text-align:left;font-weight:600;font-size:10px;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase}
+td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:#f7fafc;cursor:pointer}
+tr:hover td{background:var(--bg);cursor:pointer}
 .badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
 .b-moi{background:#E6F1FB;color:#0C447C}.b-cop{background:#FAEEDA;color:#633806}.b-par{background:#EAF3DE;color:#27500A}
 .b-ok{background:#EAF3DE;color:#173404}.b-urg{background:#FAECE7;color:#4A1B0C}.b-lat{background:#FCEBEB;color:#501313}
-.b-don{background:#E1F5EE;color:#04342C}.b-src{background:#f7fafc;color:#4a5568;border:1px solid #e2e8f0}
+.b-don{background:#E1F5EE;color:#04342C}.b-src{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
 .remb{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid;font-family:inherit;white-space:nowrap;touch-action:manipulation}
 .remb-n{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
 .remb-o{background:#EAF3DE;color:#3B6D11;border-color:#97C459}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-start;justify-content:center;z-index:100;padding:1rem;overflow-y:auto}
-.modal{background:#fff;border-radius:16px;padding:1.4rem;width:100%;max-width:540px;border:1px solid #e2e8f0;margin:auto}
-.modal h2{font-size:16px;font-weight:600;margin-bottom:1rem}
+.modal{background:var(--card);border-radius:16px;padding:1.4rem;width:100%;max-width:540px;border:1px solid var(--border);margin:auto}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:1rem;color:var(--text)}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fr{display:flex;flex-direction:column;gap:4px}
 .fr.full{grid-column:1/-1}
-.fr label{font-size:11px;color:#718096;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.fr input,.fr select{padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#1a202c;font-size:13px;font-family:inherit}
+.fr label{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.fr input,.fr select{padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit}
 .fr input:focus,.fr select:focus{outline:none;border-color:#185FA5}
-.macts{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;padding-top:.9rem;border-top:1px solid #f0f4f8}
-.psec{background:#f7fafc;border-radius:10px;padding:.9rem;margin-bottom:.9rem}
-.psec h3{font-size:13px;font-weight:600;margin-bottom:.6rem}
-.popt{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #e2e8f0}
+.macts{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--border)}
+.psec{background:var(--bg);border-radius:10px;padding:.9rem;margin-bottom:.9rem}
+.psec h3{font-size:13px;font-weight:600;margin-bottom:.6rem;color:var(--text)}
+.popt{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
 .popt:last-child{border-bottom:none}
 .popt input[type=radio]{width:16px;height:16px;margin-top:2px;flex-shrink:0;accent-color:#185FA5}
-.popt label{font-size:13px;cursor:pointer;flex:1;line-height:1.4}
+.popt label{font-size:13px;cursor:pointer;flex:1;line-height:1.4;color:var(--text)}
 .popt label b{color:#185FA5}
 .psum{background:#EAF3DE;border-radius:8px;padding:.75rem;margin-top:.75rem;font-size:12px}
 .psr{display:flex;justify-content:space-between;padding:2px 0}
 .psr.tot{font-weight:700;border-top:1px solid #C0DD97;margin-top:5px;padding-top:6px;font-size:13px}
 .vpt{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px}
-.vpt th{background:#f7fafc;padding:6px 8px;text-align:center;font-weight:600;font-size:10px;color:#718096;border:1px solid #e2e8f0;text-transform:uppercase}
-.vpt td{padding:5px 6px;border:1px solid #e2e8f0;text-align:center}
-.vpt input{width:90px;padding:5px;border-radius:6px;border:1px solid #e2e8f0;font-size:12px;text-align:center;font-family:inherit}
-.empty{text-align:center;padding:2rem;color:#a0aec0;font-size:13px}
+.vpt th{background:var(--bg);padding:6px 8px;text-align:center;font-weight:600;font-size:10px;color:var(--text3);border:1px solid var(--border);text-transform:uppercase}
+.vpt td{padding:5px 6px;border:1px solid var(--border);text-align:center}
+.vpt input{width:90px;padding:5px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;text-align:center;font-family:inherit}
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem}
+.chart-box h3{font-size:13px;font-weight:600;margin-bottom:.75rem;color:var(--text)}
+.empty{text-align:center;padding:2rem;color:var(--text3);font-size:13px}
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a202c;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;z-index:999;white-space:nowrap;pointer-events:none;animation:tin .2s ease}
 @keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @media(min-width:768px){.cards{display:none}.twrap{display:block}}
@@ -348,24 +363,36 @@ function JT(j){if(j<0)return`<span class="c-red" style="font-weight:700">${Math.
 function MB(off){
   const now=new Date();
   const d=GMD(now.getFullYear(),now.getMonth()+off);
-  const tm=d.mi.reduce((s,i)=>s+i.m,0),tc=d.co.reduce((s,i)=>s+i.m,0);
-  const bc=off===0?'#e2e8f0':'#c7d2fe',bg=off===0?'#fff':'#fafafa',tc2=off===0?'#1a202c':'#4338ca';
+  const tm=d.mi.reduce((s,i)=>s+i.m,0);
+  const tc=d.co.reduce((s,i)=>s+i.m,0);
+  // Total partage = somme des items partagés (côté Moi seulement pour éviter doublon)
+  const tpartage=d.mi.filter(i=>i.p).reduce((s,i)=>s+i.m,0)+d.co.filter(i=>i.p).reduce((s,i)=>s+i.m,0);
+  // Total global = Moi solo + Copine solo + Partagé total (sans doublon)
+  const tglobal=d.mi.filter(i=>!i.p).reduce((s,i)=>s+i.m,0)+d.co.filter(i=>!i.p).reduce((s,i)=>s+i.m,0)+tpartage;
+  const bc=off===0?'var(--border)':'#c7d2fe';
+  const bg=off===0?'var(--card)':'var(--card-next)';
+  const tc2=off===0?'var(--text)':'#4338ca';
   return`<div class="mbox" style="border-color:${bc};background:${bg}">
     <div class="mbox-t" style="color:${tc2}">📅 ${mn(off)}</div>
     <div class="mcols">
       <div><h3 class="c-blue">👤 Moi</h3>
-        ${d.mi.length===0?'<div style="font-size:12px;color:#a0aec0">Rien</div>':d.mi.map(i=>`<div class="mitem"><span style="color:#4a5568">${i.n}${i.p?' <small style="color:#27500A">(partage)</small>':''}</span><span class="c-blue" style="font-weight:600">${f(i.m)}</span></div>`).join('')}
-        ${d.mi.length>0?`<div class="mtotal"><span>Total</span><span class="c-blue">${f(tm)}</span></div>`:''}
+        ${d.mi.length===0?'<div style="font-size:12px;color:#a0aec0">Rien</div>':d.mi.map(i=>`<div class="mitem"><span style="color:var(--text2)">${i.n}${i.p?' <small style="color:#27500A">(partage)</small>':''}</span><span class="c-blue" style="font-weight:600">${f(i.m)}</span></div>`).join('')}
+        ${d.mi.length>0?`<div class="mtotal"><span>Total moi</span><span class="c-blue">${f(tm)}</span></div>`:''}
       </div>
       <div><h3 class="c-amber">💑 Copine</h3>
-        ${d.co.length===0?'<div style="font-size:12px;color:#a0aec0">Rien</div>':d.co.map(i=>`<div class="mitem"><span style="color:#4a5568">${i.n}${i.p?' <small style="color:#27500A">(partage)</small>':''}</span><span class="c-amber" style="font-weight:600">${f(i.m)}</span></div>`).join('')}
-        ${d.co.length>0?`<div class="mtotal"><span>Total</span><span class="c-amber">${f(tc)}</span></div>`:''}
+        ${d.co.length===0?'<div style="font-size:12px;color:#a0aec0">Rien</div>':d.co.map(i=>`<div class="mitem"><span style="color:var(--text2)">${i.n}${i.p?' <small style="color:#27500A">(partage)</small>':''}</span><span class="c-amber" style="font-weight:600">${f(i.m)}</span></div>`).join('')}
+        ${d.co.length>0?`<div class="mtotal"><span>Total copine</span><span class="c-amber">${f(tc)}</span></div>`:''}
       </div>
     </div>
+    ${tglobal>0?`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap;gap:6px">
+      ${tpartage>0?`<span style="font-size:12px;color:var(--text2)">🤝 Partage total : <strong style="color:#27500A">${f(tpartage)}</strong></span>`:''}
+      <span style="font-size:13px;font-weight:700;color:var(--text)">💰 Total global : ${f(tglobal)}</span>
+    </div>`:''}
   </div>`;
 }
 
 function render(){
+  applyDark();
   const k=kpis();
   const al=G.rows.filter(r=>{const c=calc(r);return c.st==='urgent'||c.st==='retard';}).sort((a,b)=>new Date(a.due)-new Date(b.due));
   const rows=filtered();
@@ -375,13 +402,17 @@ function render(){
   const nSo=G.rows.filter(r=>calc(r).st==='soldé').length;
 
   document.getElementById('app').innerHTML=`
-<div class="topbar"><h1>MY <span>Wallet</span> 💛</h1><div class="topbar-r"><button class="btn" onclick="G.pm=true;render()">🔑 PIN</button><button class="btn btn-p" onclick="OE(null)">+ Ajouter</button></div></div>
+<div class="topbar"><h1>MY <span>Wallet</span> 💛</h1><div class="topbar-r"><button class="btn" onclick="G.pm=true;render()">🔑 PIN</button><button class="btn" onclick="toggleDark()" id="dark-btn">🌙</button><button class="btn btn-p" onclick="OE(null)">+ Ajouter</button></div></div>
 <div class="kpi-grid">
   <div class="kpi"><div class="kpi-l">Total engagé</div><div class="kpi-v c-blue">${f(k.te)}</div></div>
   <div class="kpi"><div class="kpi-l">Reste à payer</div><div class="kpi-v c-red">${f(k.tr)}</div></div>
   <div class="kpi"><div class="kpi-l">Ma part</div><div class="kpi-v c-blue">${f(k.mr)}</div></div>
   <div class="kpi"><div class="kpi-l">Part copine</div><div class="kpi-v c-amber">${f(k.cr)}</div></div>
   <div class="kpi"><div class="kpi-l">À récupérer</div><div class="kpi-v c-purple">${f(k.tp)}</div></div>
+</div>
+<div class="chart-box">
+  <h3>📊 Dépenses par mois (6 derniers mois)</h3>
+  <canvas id="chart-mois" height="180"></canvas>
 </div>
 ${MB(0)}${MB(1)}
 ${al.length?`<div class="alerts">${al.map(r=>{const c=calc(r);const cls=c.st==='retard'?'a-urg':'a-wrn';const txt=c.st==='retard'?`${Math.abs(c.j)}j retard`:`${c.j}j`;return`<div class="alert ${cls}"><div class="adot"></div><strong>${r.marchand}</strong> — ${fd(r.due)} — ${f(c.cv)} — ${txt}</div>`;}).join('')}</div>`:''}
@@ -460,6 +491,7 @@ ${rows.map(r=>{const c=calc(r);const pct=Math.round((r.pays/r.total_inst)*100);c
 </tbody></table>`}
 </div>
 ${G.eid!==null?EM():''}${G.pid?PM():''}${G.pm?PiM():''}`;
+  setTimeout(drawChart, 50);
 }
 
 function EM(){
@@ -663,7 +695,74 @@ async function uploadBg(input){
   reader.readAsDataURL(file);
 }
 
-async function AI(){await LD();render();}
+// Dark mode
+let isDark = localStorage.getItem('dark') === '1';
+function applyDark(){
+  document.body.classList.toggle('dark', isDark);
+  const btn = document.getElementById('dark-btn');
+  if(btn) btn.textContent = isDark ? '☀️' : '🌙';
+}
+function toggleDark(){
+  isDark = !isDark;
+  localStorage.setItem('dark', isDark ? '1' : '0');
+  applyDark();
+  // Redessiner le graphique avec les bonnes couleurs
+  setTimeout(drawChart, 50);
+}
+applyDark();
+
+// Graphique
+let chartInstance = null;
+function drawChart(){
+  const canvas = document.getElementById('chart-mois');
+  if(!canvas) return;
+  if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+  const now = new Date();
+  const labels = [], moi = [], copine = [], partage = [];
+  for(let i = 5; i >= 0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const y = d.getFullYear(), m = d.getMonth();
+    labels.push(d.toLocaleDateString('fr-FR', {month:'short', year:'2-digit'}));
+    const md = GMD(y, m);
+    const tm = md.mi.filter(x=>!x.p).reduce((s,x)=>s+x.m, 0);
+    const tc = md.co.filter(x=>!x.p).reduce((s,x)=>s+x.m, 0);
+    const tp = md.mi.filter(x=>x.p).reduce((s,x)=>s+x.m, 0) + md.co.filter(x=>x.p).reduce((s,x)=>s+x.m, 0);
+    moi.push(Math.round(tm * 100) / 100);
+    copine.push(Math.round(tc * 100) / 100);
+    partage.push(Math.round(tp * 100) / 100);
+  }
+  const dark = document.body.classList.contains('dark');
+  const textColor = dark ? '#94a3b8' : '#718096';
+  const gridColor = dark ? '#334155' : '#e2e8f0';
+  chartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: '👤 Moi', data: moi, backgroundColor: '#185FA5CC', borderRadius: 6 },
+        { label: '💑 Copine', data: copine, backgroundColor: '#854F0BCC', borderRadius: 6 },
+        { label: '🤝 Partagé', data: partage, backgroundColor: '#27500ACC', borderRadius: 6 },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: textColor, font: { size: 11 }, boxWidth: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR', {minimumFractionDigits:2})} €`
+          }
+        }
+      },
+      scales: {
+        x: { stacked: false, ticks: { color: textColor, font:{size:10} }, grid: { color: gridColor } },
+        y: { ticks: { color: textColor, font:{size:10}, callback: v => v+'€' }, grid: { color: gridColor } }
+      }
+    }
+  });
+}
+
+async function AI(){await LD();render();setTimeout(drawChart, 100);}
 </script>
 </body>
 </html>
