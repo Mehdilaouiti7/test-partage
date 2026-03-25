@@ -230,7 +230,7 @@ async function PC(){
 }
 
 // STATE
-let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',eid:null,pid:null,pm:false};
+let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false};
 
 async function LD(){
   const {data,error}=await SB.from('echeances').select('*').order('due');
@@ -313,7 +313,26 @@ function filtered(){
     if(G.fs!=='tous'&&r.source!==G.fs)return false;
     if(G.fq&&!r.marchand.toLowerCase().includes(G.fq.toLowerCase())&&!(r.notes||'').toLowerCase().includes(G.fq.toLowerCase()))return false;
     return true;
-  }).sort((a,b)=>new Date(a.due)-new Date(b.due));
+  }).sort((a,b)=>{
+    const ca=calc(a),cb=calc(b);
+    switch(G.tri){
+      case 'date':    return new Date(a.due)-new Date(b.due);
+      case 'montant': return cb.restant-ca.restant;
+      case 'alpha':   return a.marchand.localeCompare(b.marchand,'fr');
+      case 'statut': {
+        const o={retard:0,urgent:1,ok:2,soldé:3};
+        return (o[ca.st]??2)-(o[cb.st]??2);
+      }
+      case 'acheteur': {
+        const o2={Moi:0,partage:1,Copine:2};
+        const ka=a.partage?'partage':a.acheteur;
+        const kb=b.partage?'partage':b.acheteur;
+        return (o2[ka]??1)-(o2[kb]??1);
+      }
+      case 'recent':  return new Date(b.created_at||0)-new Date(a.created_at||0);
+      default:        return new Date(a.due)-new Date(b.due);
+    }
+  });
 }
 
 function kpis(){
@@ -389,6 +408,14 @@ ${al.length?`<div class="alerts">${al.map(r=>{const c=calc(r);const cls=c.st==='
   <select onchange="G.fs=this.value;render()">
     <option value="tous">Toutes sources</option>
     ${SRC.map(s=>`<option value="${s}" ${G.fs===s?'selected':''}>${s}</option>`).join('')}
+  </select>
+  <select onchange="G.tri=this.value;render()" style="min-width:170px">
+    <option value="date"    ${G.tri==='date'   ?'selected':''}>📅 Échéance (+ proche)</option>
+    <option value="montant" ${G.tri==='montant'?'selected':''}>💰 Montant restant (+ grand)</option>
+    <option value="statut"  ${G.tri==='statut' ?'selected':''}>⚠️ Statut (retard → ok)</option>
+    <option value="alpha"   ${G.tri==='alpha'  ?'selected':''}>🔤 Marchand (A → Z)</option>
+    <option value="acheteur"${G.tri==='acheteur'?'selected':''}>👤 Acheteur (Moi → Copine)</option>
+    <option value="recent"  ${G.tri==='recent' ?'selected':''}>🕐 Ajout récent</option>
   </select>
 </div>
 <div class="cards">
