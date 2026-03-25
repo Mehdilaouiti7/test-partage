@@ -241,7 +241,7 @@ async function PC(){
 }
  
 // STATE
-let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false};
+let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous'};
  
 async function LD(){
   const {data,error}=await SB.from('echeances').select('*').order('due');
@@ -316,9 +316,9 @@ function filtered(){
     if(G.tab==='all'&&c.st==='soldé')return false;
     if(G.tab==='upcoming'&&(c.st==='soldé'||(due<t&&c.st!=='retard')))return false;
     if(G.tab==='past'&&c.st!=='soldé')return false;
-    if(G.fa==='moi_all'&&r.acheteur!=='Moi')return false;
+    if(G.fa==='moi_all'&&!(r.acheteur==='Moi'||r.partage))return false;
     if(G.fa==='moi_solo'&&!(r.acheteur==='Moi'&&!r.partage))return false;
-    if(G.fa==='cop_all'&&r.acheteur!=='Copine')return false;
+    if(G.fa==='cop_all'&&!(r.acheteur==='Copine'||r.partage))return false;
     if(G.fa==='cop_solo'&&!(r.acheteur==='Copine'&&!r.partage))return false;
     if(G.fa==='partage'&&!r.partage)return false;
     if(G.fs!=='tous'&&r.source!==G.fs)return false;
@@ -422,6 +422,14 @@ function render(){
     <button onclick="G.sf=!G.sf;render()" style="padding:4px 12px;border-radius:20px;border:1px solid ${G.sf?'var(--border)':'#185FA5'};background:${G.sf?'var(--card)':'#185FA5'};color:${G.sf?'var(--text3)':'#fff'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
       ${G.sf?'📅 Voir les prochains mois':'🕐 Voir l\'historique'}
     </button>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+    <button onclick="G.cfa='tous';render()"   style="padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:${G.cfa==='tous'?'#185FA5':'var(--card)'};color:${G.cfa==='tous'?'#fff':'var(--text3)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">Tous</button>
+    <button onclick="G.cfa='moi_p';render()"  style="padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:${G.cfa==='moi_p'?'#185FA5':'var(--card)'};color:${G.cfa==='moi_p'?'#fff':'var(--text3)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">👤 Moi + partagés</button>
+    <button onclick="G.cfa='moi_s';render()"  style="padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:${G.cfa==='moi_s'?'#185FA5':'var(--card)'};color:${G.cfa==='moi_s'?'#fff':'var(--text3)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">👤 Moi seul</button>
+    <button onclick="G.cfa='cop_p';render()"  style="padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:${G.cfa==='cop_p'?'#185FA5':'var(--card)'};color:${G.cfa==='cop_p'?'#fff':'var(--text3)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">💑 Copine + partagés</button>
+    <button onclick="G.cfa='cop_s';render()"  style="padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:${G.cfa==='cop_s'?'#185FA5':'var(--card)'};color:${G.cfa==='cop_s'?'#fff':'var(--text3)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">💑 Copine seule</button>
+    <button onclick="G.cfa='par';render()"    style="padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:${G.cfa==='par'?'#185FA5':'var(--card)'};color:${G.cfa==='par'?'#fff':'var(--text3)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">🤝 Partagés</button>
   </div>
   <canvas id="chart-mois" height="180"></canvas>
 </div>
@@ -764,86 +772,120 @@ function drawChart(){
   if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
  
   const now = new Date();
-  const curY = now.getFullYear();
-  const curM = now.getMonth();
+  const curY = now.getFullYear(), curM = now.getMonth();
   const months = [];
  
+  // Décider quels mois afficher
   if(!G.sf){
-    // 6 PROCHAINS mois (avr, mai, juin, juil, aout, sept si on est en mars)
-    for(let i = 1; i <= 6; i++){
-      const d = new Date(curY, curM + i, 1);
-      months.push({ y:d.getFullYear(), m:d.getMonth(),
+    for(let i=1;i<=6;i++){
+      const d=new Date(curY,curM+i,1);
+      months.push({y:d.getFullYear(),m:d.getMonth(),
         label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-        moi:0, copine:0, partage:0 });
+        moi:0,copine:0,partage:0,
+        items:[] // pour le tooltip détaillé
+      });
     }
-    // Remplir avec les versements restants à payer
-    G.rows.forEach(r => {
-      const rest = r.total_inst - r.pays;
-      if(rest <= 0) return;
-      const v = parseFloat(r.versement)||0;
-      if(!v) return;
-      for(let p = 0; p < rest; p++){
-        const dueDate = new Date(r.due+'T12:00:00');
-        dueDate.setMonth(dueDate.getMonth() + p);
-        const slot = months.find(x => x.y===dueDate.getFullYear() && x.m===dueDate.getMonth());
-        if(!slot) continue;
-        const vIdx = r.pays + p;
-        let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
-          ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
-        if(r.partage) slot.partage += montant;
-        else if(r.acheteur==='Moi') slot.moi += montant;
-        else slot.copine += montant;
+    G.rows.forEach(r=>{
+      const rest=r.total_inst-r.pays;
+      if(rest<=0)return;
+      for(let p=0;p<rest;p++){
+        const dueDate=new Date(r.due+'T12:00:00');
+        dueDate.setMonth(dueDate.getMonth()+p);
+        const slot=months.find(x=>x.y===dueDate.getFullYear()&&x.m===dueDate.getMonth());
+        if(!slot)continue;
+        const vIdx=r.pays+p;
+        let m=parseFloat(r.versement)||0;
+        if(r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx]&&parseFloat(r.versements_perso[vIdx].montant))
+          m=parseFloat(r.versements_perso[vIdx].montant);
+        if(!m)continue;
+        if(r.partage){slot.partage+=m;slot.items.push({n:r.marchand,m,type:'partage'});}
+        else if(r.acheteur==='Moi'){slot.moi+=m;slot.items.push({n:r.marchand,m,type:'moi'});}
+        else{slot.copine+=m;slot.items.push({n:r.marchand,m,type:'copine'});}
       }
     });
   } else {
-    // 6 DERNIERS mois (historique payé)
-    for(let i = 5; i >= 0; i--){
-      const d = new Date(curY, curM - i, 1);
-      months.push({ y:d.getFullYear(), m:d.getMonth(),
+    for(let i=5;i>=0;i--){
+      const d=new Date(curY,curM-i,1);
+      months.push({y:d.getFullYear(),m:d.getMonth(),
         label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
-        moi:0, copine:0, partage:0 });
+        moi:0,copine:0,partage:0,items:[]});
     }
-    G.rows.forEach(r => {
-      if(r.pays === 0) return;
-      const v = parseFloat(r.versement)||0;
-      if(!v) return;
-      const nextDue = new Date(r.due+'T12:00:00');
-      for(let p = 1; p <= r.pays; p++){
-        const paidDate = new Date(nextDue.getTime());
-        paidDate.setMonth(paidDate.getMonth() - p);
-        const slot = months.find(x => x.y===paidDate.getFullYear() && x.m===paidDate.getMonth());
-        if(!slot) continue;
-        const vIdx = r.pays - p;
-        let montant = (r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx])
-          ? parseFloat(r.versements_perso[vIdx].montant)||v : v;
-        if(r.partage) slot.partage += montant;
-        else if(r.acheteur==='Moi') slot.moi += montant;
-        else slot.copine += montant;
+    G.rows.forEach(r=>{
+      if(r.pays===0)return;
+      const v=parseFloat(r.versement)||0;
+      if(!v)return;
+      const nextDue=new Date(r.due+'T12:00:00');
+      for(let p=1;p<=r.pays;p++){
+        const pd=new Date(nextDue.getTime());
+        pd.setMonth(pd.getMonth()-p);
+        const slot=months.find(x=>x.y===pd.getFullYear()&&x.m===pd.getMonth());
+        if(!slot)continue;
+        const vIdx=r.pays-p;
+        let m=v;
+        if(r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx]&&parseFloat(r.versements_perso[vIdx].montant))
+          m=parseFloat(r.versements_perso[vIdx].montant);
+        if(r.partage){slot.partage+=m;slot.items.push({n:r.marchand,m,type:'partage'});}
+        else if(r.acheteur==='Moi'){slot.moi+=m;slot.items.push({n:r.marchand,m,type:'moi'});}
+        else{slot.copine+=m;slot.items.push({n:r.marchand,m,type:'copine'});}
       }
     });
   }
  
-  const dark = document.body.classList.contains('dark');
-  const textColor = dark ? '#94a3b8' : '#718096';
-  const gridColor = dark ? '#334155' : '#e2e8f0';
+  // Appliquer le filtre G.cfa sur les datasets
+  const showMoi    = ['tous','moi_p','moi_s'].includes(G.cfa);
+  const showCopine = ['tous','cop_p','cop_s'].includes(G.cfa);
+  const showPartage= ['tous','moi_p','cop_p','par'].includes(G.cfa);
+  // Pour moi_s / cop_s : exclure les partagés
+  const moisData    = months.map(x=>{
+    if(G.cfa==='moi_s') return Math.round(months.find(m=>m===x)?.moi*100||0)/100;
+    return showMoi ? Math.round(x.moi*100)/100 : 0;
+  });
+  const copineData  = months.map(x=> showCopine ? Math.round(x.copine*100)/100 : 0);
+  const partageData = months.map(x=> showPartage ? Math.round(x.partage*100)/100 : 0);
  
-  chartInstance = new Chart(canvas, {
+  const dark=document.body.classList.contains('dark');
+  const textColor=dark?'#94a3b8':'#718096';
+  const gridColor=dark?'#334155':'#e2e8f0';
+ 
+  const datasets=[];
+  if(showMoi)    datasets.push({label:'👤 Moi',    data:moisData,    backgroundColor:'#185FA5CC',borderRadius:4});
+  if(showCopine) datasets.push({label:'💑 Copine', data:copineData,  backgroundColor:'#854F0BCC',borderRadius:4});
+  if(showPartage)datasets.push({label:'🤝 Partagé',data:partageData, backgroundColor:'#27500ACC',borderRadius:4});
+ 
+  chartInstance=new Chart(canvas,{
     type:'bar',
-    data:{
-      labels: months.map(x=>x.label),
-      datasets:[
-        {label:'👤 Moi',    data:months.map(x=>Math.round(x.moi*100)/100),     backgroundColor:'#185FA5CC', borderRadius:4},
-        {label:'💑 Copine', data:months.map(x=>Math.round(x.copine*100)/100),  backgroundColor:'#854F0BCC', borderRadius:4},
-        {label:'🤝 Partagé',data:months.map(x=>Math.round(x.partage*100)/100), backgroundColor:'#27500ACC', borderRadius:4},
-      ]
-    },
+    data:{labels:months.map(x=>x.label),datasets},
     options:{
       responsive:true,
       plugins:{
         legend:{labels:{color:textColor,font:{size:11},boxWidth:12}},
-        tooltip:{callbacks:{
-          label: ctx => ` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2})} €`
-        }}
+        tooltip:{
+          callbacks:{
+            // Titre = mois
+            title: items => items[0].label,
+            // Détail = liste des achats
+            afterBody: items => {
+              const idx=items[0].dataIndex;
+              const slot=months[idx];
+              if(!slot||!slot.items.length)return[];
+              const lines=[];
+              const typeLabel={moi:'👤',copine:'💑',partage:'🤝'};
+              // Filtrer selon dataset cliqué
+              const dsLabel=items[0].dataset.label;
+              const filtered=slot.items.filter(i=>{
+                if(dsLabel.includes('Moi'))return i.type==='moi';
+                if(dsLabel.includes('Copine'))return i.type==='copine';
+                if(dsLabel.includes('Partagé'))return i.type==='partage';
+                return true;
+              });
+              lines.push('─────────────────');
+              filtered.forEach(i=>lines.push(` ${typeLabel[i.type]} ${i.n} : ${i.m.toLocaleString('fr-FR',{minimumFractionDigits:2})} €`));
+              return lines;
+            },
+            label: ctx=> ` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2})} €`
+          },
+          displayColors:true
+        }
       },
       scales:{
         x:{ticks:{color:textColor,font:{size:10}},grid:{color:gridColor}},
