@@ -1133,49 +1133,31 @@ function drawChart(){
     if(['tous','cop_s','cop_p'].includes(fa2)) html += sec('💑 Copine','#854F0B', slot.itemsCop,'m');
     if(fa2==='cop_p')  html += sec('💛 Partagés','#854F0B', slot.itemsPar,'copPart');
     if(['tous','par'].includes(fa2)) html += sec('🤝 Partagés','#27500A', slot.itemsPar,'total');
-    // Totaux selon filtre
-    const tMs = Math.round(slot.moi*100)/100;          // moi solo
-    const tCs = Math.round(slot.copine*100)/100;        // copine solo
-    const tP  = Math.round(slot.partage*100)/100;       // total partagé brut
-    const tpM = Math.round(slot.pMoi*100)/100;          // ma part des partagés
-    const tpC = Math.round(slot.pCop*100)/100;          // part copine des partagés
+    // Séparer achats normaux et abonnements (🔄)
+    const isMoiAbo  = i => i.n && i.n.includes('🔄');
+    const tAboMoi   = Math.round(slot.itemsMoi.filter(isMoiAbo).reduce((s,i)=>s+i.m,0)*100)/100;
+    const tAboMoiP  = Math.round(slot.itemsPar.filter(isMoiAbo).reduce((s,i)=>s+i.maPart,0)*100)/100;
+    const tAboCopP  = Math.round(slot.itemsPar.filter(isMoiAbo).reduce((s,i)=>s+i.copPart,0)*100)/100;
+    const tAboCop   = Math.round(slot.itemsCop.filter(isMoiAbo).reduce((s,i)=>s+i.m,0)*100)/100;
+    const tAchatMoi = Math.round(slot.itemsMoi.filter(i=>!isMoiAbo(i)).reduce((s,i)=>s+i.m,0)*100)/100;
+    const tAchatCop = Math.round(slot.itemsCop.filter(i=>!isMoiAbo(i)).reduce((s,i)=>s+i.m,0)*100)/100;
+    const tAchatPar = Math.round(slot.itemsPar.filter(i=>!isMoiAbo(i)).reduce((s,i)=>s+i.total,0)*100)/100;
+    const tPar      = Math.round(slot.partage*100)/100;
+    const tpM       = Math.round(slot.pMoi*100)/100;
+    const tpC       = Math.round(slot.pCop*100)/100;
+    const tMs       = Math.round(slot.moi*100)/100;
+    const tCs       = Math.round(slot.copine*100)/100;
+    // Total abonnements (toutes catégories selon filtre)
+    const tAbo = Math.round((tAboMoi + tAboCop + (slot.itemsPar.filter(isMoiAbo).reduce((s,i)=>s+i.total,0)))*100)/100;
+    // Total achats sans abonnements
+    const tAchat = Math.round((tAchatMoi + tAchatCop + tAchatPar)*100)/100;
  
     html += '<div style="margin-top:8px;padding-top:6px;border-top:2px solid var(--border)">';
- 
-    if(fa==='tous'){
-      // Tous : 3 lignes + global
-      html += row('👤 Mes achats', tMs, '#185FA5');
-      html += row('💑 Achats copine', tCs, '#854F0B');
-      html += row('🤝 Total partagé', tP, '#27500A');
-      const g = Math.round((tMs+tCs+tP)*100)/100;
-      html += rowBold('💰 Total global', g);
- 
-    } else if(fa==='moi_p'){
-      // Moi + partagés : mes achats + ma part + total
-      html += row('👤 Mes achats', tMs, '#185FA5');
-      html += row('💛 Ma part partagés', tpM, '#185FA5');
-      const t = Math.round((tMs+tpM)*100)/100;
-      html += rowBold('💰 Total', t);
- 
-    } else if(fa==='moi_s'){
-      html += rowBold('👤 Total moi', tMs);
- 
-    } else if(fa==='cop_p'){
-      // Copine + partagés
-      html += row('💑 Achats copine', tCs, '#854F0B');
-      html += row('💛 Sa part partagés', tpC, '#854F0B');
-      const t = Math.round((tCs+tpC)*100)/100;
-      html += rowBold('💰 Total', t);
- 
-    } else if(fa==='cop_s'){
-      html += rowBold('💑 Total copine', tCs);
- 
-    } else if(fa==='par'){
-      html += row('👤 Ma part', tpM, '#185FA5');
-      html += row('💑 Part copine', tpC, '#854F0B');
-      html += rowBold('🤝 Total partagé', tP);
-    }
- 
+    html += row('🛒 Total achats', tAchat, 'var(--text2)');
+    html += row('🔄 Total abonnements', tAbo, 'var(--text2)');
+    html += row('🤝 Total partagé', tPar, '#27500A');
+    const grand = Math.round((tMs+tCs+tPar)*100)/100;
+    html += rowBold('💰 Total', grand);
     html += '</div>';
  
     function row(label, val, color){
