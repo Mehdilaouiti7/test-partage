@@ -1173,7 +1173,21 @@ function drawChart(){
     // Total achats sans abonnements
     const tAchat = Math.round((tAchatMoi + tAchatCop + tAchatPar)*100)/100;
  
-    const grand = Math.round((tMs+tCs+tPar)*100)/100;
+    // Total = somme exacte de ce qui est affiché dans les sections
+    // Pour "Moi seul" : achats moi + abonnements moi (pas les partagés)
+    const grandMoi  = slot.itemsMoi.reduce((s,i)=>s+i.m, 0);
+    const grandCop  = slot.itemsCop.reduce((s,i)=>s+i.m, 0);
+    const grandPar  = slot.itemsPar.reduce((s,i)=>{
+      if(fa2==='moi_p')  return s+i.maPart;
+      if(fa2==='cop_p')  return s+i.copPart;
+      return s+i.total;
+    }, 0);
+    let grand = 0;
+    if(['tous','moi_s','moi_p'].includes(fa2)) grand += grandMoi;
+    if(['tous','cop_s','cop_p'].includes(fa2)) grand += grandCop;
+    if(['tous','moi_p','cop_p','par'].includes(fa2)) grand += grandPar;
+    grand = Math.round(grand*100)/100;
+ 
     html += '<div style="margin-top:8px;padding-top:6px;border-top:2px solid var(--border)">';
     html += rowBold('💰 Total', grand);
     html += '</div>';
