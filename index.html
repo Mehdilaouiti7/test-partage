@@ -241,12 +241,16 @@ async function PC(){
 }
  
 // STATE
-let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous'};
+let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous',abos:[],eabo:null};
  
 async function LD(){
-  const {data,error}=await SB.from('echeances').select('*').order('due');
-  if(error){T('Erreur: '+error.message);return;}
-  G.rows=data||[];
+  const [{data:d1,error:e1},{data:d2}]=await Promise.all([
+    SB.from('echeances').select('*').order('due'),
+    SB.from('abonnements').select('*').order('nom')
+  ]);
+  if(e1){T('Erreur: '+e1.message);return;}
+  G.rows=d1||[];
+  G.abos=d2||[];
 }
  
 function f(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
@@ -397,6 +401,144 @@ function MB(off){
     '</div>';
 }
  
+ 
+// ── ABONNEMENTS ────────────────────────────────────────────────
+function aboSection(){
+  const abos = G.abos;
+  const actifs = abos.filter(a=>a.actif);
+  const totalMoi = actifs.filter(a=>!a.partage&&a.acheteur==='Moi').reduce((s,a)=>s+parseFloat(a.montant),0);
+  const totalCop = actifs.filter(a=>!a.partage&&a.acheteur==='Copine').reduce((s,a)=>s+parseFloat(a.montant),0);
+  const totalPar = actifs.filter(a=>a.partage).reduce((s,a)=>s+parseFloat(a.montant),0);
+  const maPart   = actifs.filter(a=>a.partage).reduce((s,a)=>s+(a.partage_type==='perso'?parseFloat(a.montant_copine||0):(parseFloat(a.montant)/2)),0);
+ 
+  return `<div class="mbox" style="margin-bottom:1rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:8px">
+      <div class="mbox-t" style="margin:0">🔄 Abonnements & Prélèvements</div>
+      <button class="btn btn-p" style="font-size:11px;padding:5px 10px" onclick="G.eabo='new';render()">+ Ajouter</button>
+    </div>
+    ${actifs.length===0?'<div style="font-size:12px;color:var(--text3)">Aucun abonnement actif</div>':''}
+    ${actifs.map(a=>{
+      const m=parseFloat(a.montant);
+      const mc=a.partage?(a.partage_type==='perso'?parseFloat(a.montant_copine||0):m/2):0;
+      const maPart2=a.partage?m-mc:m;
+      return `<div class="mitem" style="padding:6px 0;align-items:center">
+        <div>
+          <span style="font-weight:500;color:var(--text)">${a.nom}</span>
+          ${a.partage?`<span class="badge b-par" style="margin-left:5px">${a.partage_type==='perso'?'Partagé perso':'50/50'}</span>`:(a.acheteur==='Copine'?'<span class="badge b-cop" style="margin-left:5px">Copine</span>':'<span class="badge b-moi" style="margin-left:5px">Moi</span>')}
+          <span style="font-size:11px;color:var(--text3);margin-left:4px">· J${a.jour_prelevement} chaque mois</span>
+          ${a.notes?`<div style="font-size:11px;color:var(--text3)">${a.notes}</div>`:''}
+        </div>
+        <div style="text-align:right;display:flex;align-items:center;gap:8px">
+          <div>
+            <div style="font-weight:700;color:#185FA5">${f(m)}</div>
+            ${a.partage?`<div style="font-size:10px;color:var(--text3)">ma part: ${f(maPart2)}</div>`:''}
+          </div>
+          <button class="btn btn-sm" onclick="G.eabo='${a.id}';render()" style="padding:3px 7px">✏️</button>
+          <button class="btn btn-sm" onclick="toggleAbo('${a.id}',${a.actif})" style="padding:3px 7px;color:#276749">✓</button>
+          <button class="btn btn-sm btn-d" onclick="delAbo('${a.id}')" style="padding:3px 7px">✕</button>
+        </div>
+      </div>`;
+    }).join('')}
+    ${actifs.length>0?`
+    <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+      ${totalMoi>0?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="color:var(--text3)">👤 Moi (solo)</span><span style="font-weight:600;color:#185FA5">${f(totalMoi)}/mois</span></div>`:''}
+      ${totalCop>0?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="color:var(--text3)">💑 Copine (solo)</span><span style="font-weight:600;color:#854F0B">${f(totalCop)}/mois</span></div>`:''}
+      ${totalPar>0?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="color:var(--text3)">🤝 Partagés</span><span style="font-weight:600;color:#27500A">${f(totalPar)}/mois (ma part: ${f(maPart)})</span></div>`:''}
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding-top:6px;margin-top:4px;border-top:1px solid var(--border)">
+        <span>💰 Total /mois</span><span>${f(totalMoi+totalCop+totalPar)}</span>
+      </div>
+    </div>`:''}
+    ${abos.filter(a=>!a.actif).length>0?`<div style="font-size:11px;color:var(--text3);margin-top:8px">${abos.filter(a=>!a.actif).length} abonnement(s) inactif(s)</div>`:''}
+  </div>
+  ${G.eabo!==null?aboModal():''}`;
+}
+ 
+function aboModal(){
+  const isNew=G.eabo==='new';
+  const a=isNew?{nom:'',montant:'',jour_prelevement:1,acheteur:'Moi',partage:false,partage_type:'50/50',montant_copine:'',source:'Prélèvement',notes:'',actif:true}:G.abos.find(x=>x.id===G.eabo);
+  if(!a)return'';
+  return `<div class="overlay" onclick="if(event.target===this){G.eabo=null;render()}"><div class="modal">
+    <h2>${isNew?'Ajouter un abonnement':'Modifier l\'abonnement'}</h2>
+    <div class="fg">
+      <div class="fr full"><label>Nom *</label><input id="an" value="${a.nom||''}" placeholder="Ex: Basic Fit, Netflix..."></div>
+      <div class="fr"><label>Montant (€) *</label><input id="am" type="number" step="0.01" value="${a.montant||''}" oninput="aboUpdPart()"></div>
+      <div class="fr"><label>Jour du mois</label><input id="aj" type="number" min="1" max="31" value="${a.jour_prelevement||1}"></div>
+      <div class="fr"><label>Source</label>
+        <select id="asr">${['PayPal','Oney','Cofidis','Carte bancaire','Virement','Prélèvement','Autre'].map(s=>`<option value="${s}" ${(a.source||'Prélèvement')===s?'selected':''}>${s}</option>`).join('')}</select>
+      </div>
+      <div class="fr"><label>Qui paie ?</label>
+        <select id="aac"><option value="Moi" ${(a.acheteur||'Moi')==='Moi'?'selected':''}>Moi</option><option value="Copine" ${a.acheteur==='Copine'?'selected':''}>Copine</option></select>
+      </div>
+      <div class="fr full"><label>Partage copine</label>
+        <select id="apa" onchange="aboUpdPart()">
+          <option value="non" ${!a.partage?'selected':''}>Non partagé</option>
+          <option value="50/50" ${a.partage&&a.partage_type==='50/50'?'selected':''}>50/50</option>
+          <option value="perso" ${a.partage&&a.partage_type==='perso'?'selected':''}>Montant fixe copine</option>
+        </select>
+      </div>
+      <div class="fr full" id="abo-cop-wrap" style="${a.partage&&a.partage_type==='perso'?'':'display:none'}">
+        <label>Montant copine (€)</label>
+        <input id="amc" type="number" step="0.01" value="${a.montant_copine||''}" placeholder="Ex: 15.00">
+      </div>
+      <div class="fr full" id="abo-part-info" style="background:var(--bg);border-radius:8px;padding:8px 10px;font-size:12px;display:${a.partage?'block':'none'}">
+        <span style="color:var(--text3)">Ma part : </span><span id="abo-ma-part" style="font-weight:600;color:#185FA5">—</span>
+        <span style="color:var(--text3);margin-left:10px">Part copine : </span><span id="abo-cop-part" style="font-weight:600;color:#854F0B">—</span>
+      </div>
+      <div class="fr full"><label>Notes</label><input id="ano" value="${a.notes||''}" placeholder="Ex: Salle de sport..."></div>
+    </div>
+    <div class="macts">
+      <button class="btn" onclick="G.eabo=null;render()">Annuler</button>
+      <button class="btn btn-p" onclick="saveAbo(${isNew?"'new'":`'${a.id}'`})">${isNew?'Ajouter':'Enregistrer'}</button>
+    </div>
+  </div></div>`;
+}
+ 
+function aboUpdPart(){
+  const m=parseFloat(document.getElementById('am')?.value)||0;
+  const pa=document.getElementById('apa')?.value||'non';
+  const wrap=document.getElementById('abo-cop-wrap');
+  const info=document.getElementById('abo-part-info');
+  if(wrap) wrap.style.display=(pa==='perso'?'':'none');
+  if(info) info.style.display=(pa!=='non'?'block':'none');
+  if(pa!=='non'&&m){
+    const mc=pa==='perso'?(parseFloat(document.getElementById('amc')?.value)||0):m/2;
+    const mm=m-mc;
+    const el1=document.getElementById('abo-ma-part');
+    const el2=document.getElementById('abo-cop-part');
+    if(el1)el1.textContent=f(mm);
+    if(el2)el2.textContent=f(mc);
+  }
+}
+ 
+async function saveAbo(id){
+  const nom=document.getElementById('an').value.trim();
+  const montant=parseFloat(document.getElementById('am').value)||0;
+  const jour=parseInt(document.getElementById('aj').value)||1;
+  const acheteur=document.getElementById('aac').value;
+  const pav=document.getElementById('apa').value;
+  const partage=pav!=='non';
+  const partage_type=pav==='non'?'50/50':pav;
+  const montant_copine=partage&&partage_type==='perso'?(parseFloat(document.getElementById('amc').value)||0):0;
+  const source=document.getElementById('asr').value;
+  const notes=document.getElementById('ano').value.trim();
+  if(!nom||!montant){alert('Nom et montant obligatoires');return;}
+  const item={nom,montant,jour_prelevement:jour,acheteur,partage,partage_type,montant_copine,source,notes,actif:true};
+  if(id==='new') await SB.from('abonnements').insert(item);
+  else await SB.from('abonnements').update(item).eq('id',id);
+  await LD(); G.eabo=null; render(); T(id==='new'?'Abonnement ajouté ✓':'Modifié ✓');
+}
+ 
+async function toggleAbo(id,actif){
+  await SB.from('abonnements').update({actif:!actif}).eq('id',id);
+  await LD(); render(); T(!actif?'Activé ✓':'Mis en pause');
+}
+ 
+async function delAbo(id){
+  if(!confirm('Supprimer cet abonnement ?'))return;
+  await SB.from('abonnements').delete().eq('id',id);
+  await LD(); render(); T('Supprimé');
+}
+ 
 function render(){
   applyDark();
   const k=kpis();
@@ -441,6 +583,7 @@ ${al.length?`<div class="alerts">${al.map(r=>{const c=calc(r);const cls=c.st==='
   <div class="sc"><h3 class="c-amber">💑 Copine (solo)</h3><div class="sr"><span>Total</span><span>${f(sc.e)}</span></div><div class="sr"><span>Payé</span><span class="c-green">${f(sc.d)}</span></div><div class="sr"><span>Reste</span><span class="c-red">${f(sc.r)}</span></div></div>
   <div class="sc"><h3 style="color:#27500A">🤝 Partagés</h3><div class="sr"><span>Total</span><span>${f(sp.e)}</span></div><div class="sr"><span>Payé</span><span class="c-green">${f(sp.d)}</span></div><div class="sr"><span>Reste</span><span class="c-red">${f(sp.r)}</span></div><div class="sr" style="border-top:1px solid #f0f4f8;margin-top:4px;padding-top:4px"><span>À récupérer</span><span class="c-purple">${f(sp.a)}</span></div></div>
 </div>
+${aboSection()}
 <div class="tabs">
   <button class="tab ${G.tab==='all'?'on':''}" onclick="G.tab='all';render()">En cours (${nEn})</button>
   <button class="tab ${G.tab==='upcoming'?'on':''}" onclick="G.tab='upcoming';render()">À venir</button>
