@@ -132,6 +132,26 @@ tr:hover td{background:var(--bg);cursor:pointer}
 .vpt input{width:90px;padding:5px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;text-align:center;font-family:inherit}
 .chart-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem}
 .chart-box h3{font-size:13px;font-weight:600;margin-bottom:.75rem;color:var(--text)}
+.cal-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.cal-title{font-size:14px;font-weight:600;color:var(--text)}
+.cal-nav{background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;color:var(--text);font-size:16px;touch-action:manipulation}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day-name{text-align:center;font-size:10px;font-weight:600;color:var(--text3);padding:4px 0;text-transform:uppercase}
+.cal-day{text-align:center;padding:5px 2px;border-radius:8px;cursor:pointer;position:relative;touch-action:manipulation;min-height:42px;display:flex;flex-direction:column;align-items:center}
+.cal-day:hover{background:var(--bg)}
+.cal-day.today{background:#185FA520}
+.cal-day.today .cal-num{color:#185FA5;font-weight:700}
+.cal-day.selected{background:#185FA5}
+.cal-day.selected .cal-num{color:#fff;font-weight:700}
+.cal-day.other-month .cal-num{color:var(--text3);opacity:.4}
+.cal-num{font-size:12px;font-weight:500;color:var(--text);line-height:1.4}
+.cal-dots{display:flex;gap:2px;justify-content:center;margin-top:2px;flex-wrap:wrap}
+.cal-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.cal-detail{background:var(--bg);border-radius:10px;padding:.75rem;margin-top:.75rem}
+.cal-detail-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:.5rem}
+.cal-detail-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;border-bottom:1px solid var(--border)}
+.cal-detail-row:last-child{border-bottom:none}
 .empty{text-align:center;padding:2rem;color:var(--text3);font-size:13px}
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a202c;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;z-index:999;white-space:nowrap;pointer-events:none;animation:tin .2s ease}
 @keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
@@ -241,7 +261,7 @@ async function PC(){
 }
  
 // STATE
-let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous',abos:[],eabo:null};
+let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous',abos:[],eabo:null,cal:{y:new Date().getFullYear(),m:new Date().getMonth(),sel:null}};
  
 async function LD(){
   const [{data:d1,error:e1},{data:d2}]=await Promise.all([
@@ -572,6 +592,139 @@ async function delAbo(id){
   await LD(); render(); T('Supprimé');
 }
  
+ 
+// ── CALENDRIER ─────────────────────────────────────────────────
+function calSection(){
+  const {y,m,sel} = G.cal;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const firstDay = new Date(y,m,1).getDay(); // 0=dim
+  const startDow = (firstDay+6)%7; // lundi=0
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const daysInPrev = new Date(y,m,0).getDate();
+ 
+  // Construire map des échéances par jour
+  const eMap = {};
+  G.rows.forEach(r=>{
+    const c2=calc(r);
+    if(c2.st==='soldé') return;
+    const d=new Date(r.due+'T12:00:00');
+    if(d.getFullYear()===y&&d.getMonth()===m){
+      const k=d.getDate();
+      if(!eMap[k]) eMap[k]=[];
+      eMap[k].push(r);
+    }
+  });
+  // Abonnements : le jour du mois
+  (G.abos||[]).filter(a=>a.actif).forEach(a=>{
+    const k=a.jour_prelevement;
+    if(k>=1&&k<=daysInMonth){
+      if(!eMap[k]) eMap[k]=[];
+      eMap[k].push({...a, _abo:true});
+    }
+  });
+ 
+  const monthName = new Date(y,m,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+ 
+  // Générer les cellules
+  let cells='';
+  const totalCells = Math.ceil((startDow+daysInMonth)/7)*7;
+  for(let i=0;i<totalCells;i++){
+    const dayNum = i-startDow+1;
+    const isCurrentMonth = dayNum>=1&&dayNum<=daysInMonth;
+    const displayNum = isCurrentMonth ? dayNum : (dayNum<1 ? daysInPrev+dayNum : dayNum-daysInMonth);
+    const isToday = isCurrentMonth && new Date(y,m,dayNum).getTime()===today.getTime();
+    const isSel = isCurrentMonth && sel===dayNum;
+    const items = isCurrentMonth ? (eMap[dayNum]||[]) : [];
+ 
+    // Points colorés
+    let hasMoi=false,hasCop=false,hasPar=false;
+    items.forEach(r=>{
+      if(r._abo){
+        if(r.partage) hasPar=true;
+        else if(r.acheteur==='Copine') hasCop=true;
+        else hasMoi=true;
+      } else {
+        if(r.partage) hasPar=true;
+        else if(r.acheteur==='Copine') hasCop=true;
+        else hasMoi=true;
+      }
+    });
+ 
+    const dots = items.length>0 ? `<div class="cal-dots">
+      ${hasMoi?'<div class="cal-dot" style="background:#185FA5"></div>':''}
+      ${hasCop?'<div class="cal-dot" style="background:#854F0B"></div>':''}
+      ${hasPar?'<div class="cal-dot" style="background:#27500A"></div>':''}
+    </div>` : '';
+ 
+    cells += `<div class="cal-day${!isCurrentMonth?' other-month':''}${isToday?' today':''}${isSel?' selected':''}" 
+      onclick="${isCurrentMonth?`G.cal.sel=${isSel?'null':dayNum};render()`:''}" >
+      <div class="cal-num">${displayNum}</div>
+      ${dots}
+    </div>`;
+  }
+ 
+  // Détail du jour sélectionné
+  let detail='';
+  if(sel && eMap[sel]){
+    const items2=eMap[sel];
+    const moi=items2.filter(r=>!r.partage&&(r.acheteur==='Moi'||r._abo&&r.acheteur==='Moi'));
+    const cop=items2.filter(r=>!r.partage&&(r.acheteur==='Copine'||r._abo&&r.acheteur==='Copine'));
+    const par=items2.filter(r=>r.partage);
+    const selDate=new Date(y,m,sel).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+ 
+    detail=`<div class="cal-detail">
+      <div class="cal-detail-title">📅 ${selDate}</div>
+      ${moi.length?`<div style="font-weight:600;color:#185FA5;font-size:11px;text-transform:uppercase;margin:4px 0 2px">👤 Moi</div>
+        ${moi.map(r=>{const amt=r._abo?parseFloat(r.montant):calc(r).cv;return`<div class="cal-detail-row"><span>${r.nom||r.marchand}${r._abo?' 🔄':''}</span><span style="font-weight:600;color:#185FA5">${f(amt)}</span></div>`;}).join('')}`:''}
+      ${cop.length?`<div style="font-weight:600;color:#854F0B;font-size:11px;text-transform:uppercase;margin:4px 0 2px">💑 Copine</div>
+        ${cop.map(r=>{const amt=r._abo?parseFloat(r.montant):calc(r).cv;return`<div class="cal-detail-row"><span>${r.nom||r.marchand}${r._abo?' 🔄':''}</span><span style="font-weight:600;color:#854F0B">${f(amt)}</span></div>`;}).join('')}`:''}
+      ${par.length?`<div style="font-weight:600;color:#27500A;font-size:11px;text-transform:uppercase;margin:4px 0 2px">🤝 Partagé</div>
+        ${par.map(r=>{const c2=calc(r);return`<div class="cal-detail-row"><span>${r.marchand}</span><span style="font-weight:600;color:#27500A">${f(c2.cv)}</span></div>`;}).join('')}`:''}
+    </div>`;
+  }
+ 
+  return `<div class="cal-box">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="G.cal.m--;if(G.cal.m<0){G.cal.m=11;G.cal.y--;}G.cal.sel=null;render()">‹</button>
+      <div class="cal-title">${monthName}</div>
+      <button class="cal-nav" onclick="G.cal.m++;if(G.cal.m>11){G.cal.m=0;G.cal.y++;}G.cal.sel=null;render()">›</button>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-day-name">Lu</div><div class="cal-day-name">Ma</div><div class="cal-day-name">Me</div>
+      <div class="cal-day-name">Je</div><div class="cal-day-name">Ve</div><div class="cal-day-name">Sa</div>
+      <div class="cal-day-name">Di</div>
+      ${cells}
+    </div>
+    ${detail}
+  </div>`;
+}
+ 
+// ── ALERTES URGENTES ────────────────────────────────────────────
+function alertSection(){
+  const urgent = G.rows.filter(r=>{
+    const c2=calc(r);
+    return c2.st==='urgent'; // moins de 7 jours
+  }).sort((a,b)=>new Date(a.due)-new Date(b.due));
+  if(!urgent.length) return '';
+  return `<div style="margin-bottom:1rem">
+    ${urgent.map(r=>{
+      const c2=calc(r);
+      const couleur=c2.j===0?'#A32D2D':c2.j<=3?'#C0390B':'#BA7517';
+      const bg=c2.j===0?'#FCEBEB':c2.j<=3?'#FAECE7':'#FAEEDA';
+      return`<div style="background:${bg};border-left:3px solid ${couleur};border-radius:8px;padding:8px 12px;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:7px;height:7px;border-radius:50%;background:${couleur};flex-shrink:0"></div>
+          <div>
+            <span style="font-weight:600;font-size:12px;color:${couleur}">${r.marchand}</span>
+            <span style="font-size:11px;color:${couleur};margin-left:6px">${c2.j===0?'Aujourd\'hui':c2.j+'j restants'}</span>
+          </div>
+        </div>
+        <span style="font-weight:700;font-size:12px;color:${couleur}">${f(c2.cv)}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+ 
 function render(){
   applyDark();
   const k=kpis();
@@ -609,8 +762,8 @@ function render(){
   <canvas id="chart-mois" height="200"></canvas>
   <div id="chart-detail" style="display:none;margin-top:10px;background:var(--bg);border-radius:8px;padding:10px;font-size:12px"></div>
 </div>
-${MB(0)}${MB(1)}
-${al.length?`<div class="alerts">${al.map(r=>{const c=calc(r);const cls=c.st==='retard'?'a-urg':'a-wrn';const txt=c.st==='retard'?`${Math.abs(c.j)}j retard`:`${c.j}j`;return`<div class="alert ${cls}"><div class="adot"></div><strong>${r.marchand}</strong> — ${fd(r.due)} — ${f(c.cv)} — ${txt}</div>`;}).join('')}</div>`:''}
+${alertSection()}${calSection()}${MB(0)}${MB(1)}
+ 
 <div class="sg">
   <div class="sc"><h3 class="c-blue">👤 Moi (solo)</h3><div class="sr"><span>Total</span><span>${f(sm.e)}</span></div><div class="sr"><span>Payé</span><span class="c-green">${f(sm.d)}</span></div><div class="sr"><span>Reste</span><span class="c-red">${f(sm.r)}</span></div></div>
   <div class="sc"><h3 class="c-amber">💑 Copine (solo)</h3><div class="sr"><span>Total</span><span>${f(sc.e)}</span></div><div class="sr"><span>Payé</span><span class="c-green">${f(sc.d)}</span></div><div class="sr"><span>Reste</span><span class="c-red">${f(sc.r)}</span></div></div>
