@@ -69,16 +69,20 @@ async function PC(){
 
 // STATE
 
-let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous',abos:[],eabo:null,cal:{y:new Date().getFullYear(),m:new Date().getMonth(),sel:null}};
+let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous',abos:[],eabo:null,cats:[],salaire:0,cal:{y:new Date().getFullYear(),m:new Date().getMonth(),sel:null}};
 
 async function LD(){
-  const [{data:d1,error:e1},{data:d2}]=await Promise.all([
-    SB.from('echeances').select('*').order('due'),
-    SB.from('abonnements').select('*').order('nom')
+  const [{data:d1,error:e1},{data:d2},{data:d3},{data:d4}]=await Promise.all([
+    SB.from('echeances').select('*').eq('archive',false).order('due'),
+    SB.from('abonnements').select('*').order('nom'),
+    SB.from('categories').select('*').order('nom'),
+    SB.from('app_config').select('key,value').eq('key','salaire_brut').single()
   ]);
   if(e1){T('Erreur: '+e1.message);return;}
   G.rows=d1||[];
   G.abos=d2||[];
+  G.cats=d3||[];
+  G.salaire=parseFloat(d4?.value||0);
 }
 
 function f(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
@@ -606,7 +610,7 @@ function render(){
   <canvas id="chart-mois" height="200"></canvas>
   <div id="chart-detail" style="display:none;margin-top:10px;background:var(--bg);border-radius:8px;padding:10px;font-size:12px"></div>
 </div>
-${alertSection()}${calSection()}${MB(0)}
+${alertSection()}${salaireWidget()}${calSection()}${MB(0)}
 ${MB(1)}
 
 <div class="sg">
@@ -715,6 +719,12 @@ function EM(){
       <div class="fr"><label>Acheteur (CB)</label><select id="ea"><option value="Moi" ${(r.acheteur||'Moi')==='Moi'?'selected':''}>Moi</option><option value="Copine" ${r.acheteur==='Copine'?'selected':''}>Copine</option></select></div>
       <div class="fr full"><label>Partage copine</label><select id="epa" onchange="RVP()"><option value="non" ${!r.partage?'selected':''}>Non partagé</option><option value="50/50" ${r.partage&&pt==='50/50'?'selected':''}>Partagé 50/50</option><option value="perso" ${r.partage&&pt==='perso'?'selected':''}>Partagé personnalisé</option></select></div>
       <div class="fr full" id="vp-w">${vph}</div>
+      <div class="fr full"><label>Catégorie</label>
+        <select id="ecat">
+          <option value="">— Sans catégorie —</option>
+          ${G.cats.map(cat=>`<option value="${cat.nom}" ${(r.categorie||''===cat.nom)?'selected':''}>${cat.icon} ${cat.nom}</option>`).join('')}
+        </select>
+      </div>
       <div class="fr full"><label>Notes</label><input id="en" value="${r.notes||''}" placeholder="Ex: Vacances..."></div>
     </div>
     <div class="macts"><button class="btn" onclick="G.eid=null;render()">Annuler</button><button class="btn btn-p" onclick="SR(${isN?"'new'":`'${r.id}'`})">${isN?'Ajouter':'Enregistrer'}</button></div>
@@ -797,6 +807,42 @@ function UPS(){
   document.getElementById('ps').innerHTML=h;
 }
 
+function salaireWidget(){
+  // Calculer les charges fixes du mois courant
+  const now = new Date();
+  const curY = now.getFullYear(), curM = now.getMonth();
+  const d = GMD(curY, curM);
+  const totalEch = d.mi.reduce((s,i)=>s+i.m,0); // mes échéances ce mois
+  const totalAbos = (G.abos||[]).filter(a=>a.actif&&a.acheteur==='Moi'&&!a.partage).reduce((s,a)=>s+parseFloat(a.montant),0);
+  const totalAbosPartage = (G.abos||[]).filter(a=>a.actif&&a.partage).reduce((s,a)=>s+(parseFloat(a.montant)-(a.partage_type==='perso'?parseFloat(a.montant_copine||0):parseFloat(a.montant)/2)),0);
+  const charges = Math.round((totalEch + totalAbos + totalAbosPartage)*100)/100;
+  
+  // Salaire net ≈ brut * 0.77 (approximation France)
+  const net = Math.round(G.salaire * 0.77 * 100)/100;
+  const reste = Math.round((net - charges)*100)/100;
+  
+  if(G.salaire===0) return '';
+  
+  const color = reste > 0 ? '#276749' : '#A32D2D';
+  const pct = Math.min(100, Math.max(0, Math.round((charges/net)*100)));
+  
+  return `<div class="mbox" style="margin-bottom:1rem">
+    <div class="mbox-t">💶 Salaire & Reste à vivre</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div class="kpi"><div class="kpi-l">Salaire brut</div><div class="kpi-v" style="color:var(--text)">${f(G.salaire)}</div></div>
+      <div class="kpi"><div class="kpi-l">Charges mois</div><div class="kpi-v c-red">${f(charges)}</div></div>
+      <div class="kpi"><div class="kpi-l">Reste à vivre</div><div class="kpi-v" style="color:${color}">${f(reste)}</div></div>
+    </div>
+    <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+      <div style="width:${pct}%;height:100%;background:${pct>80?'#A32D2D':pct>60?'#BA7517':'#276749'};border-radius:4px;transition:width .3s"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px">
+      <span>Charges : ${pct}% du salaire net</span>
+      <span>Net estimé : ${f(net)}</span>
+    </div>
+  </div>`;
+}
+
 function SM(){
   return`<div class="overlay" onclick="if(event.target===this){G.sm=false;render()}"><div class="modal">
     <h2>⚙️ Réglages</h2>
@@ -824,6 +870,30 @@ function SM(){
       </div>
 
       <div style="background:var(--bg);border-radius:10px;padding:1rem">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">💶 Salaire brut mensuel</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="sal-input" type="number" step="100" value="${G.salaire||''}" placeholder="Ex: 2500" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit">
+          <button onclick="saveSalaire()" class="btn btn-p">Enregistrer</button>
+        </div>
+        ${G.salaire>0?`<div style="font-size:11px;color:var(--text3);margin-top:6px">Net estimé (~77%) : <strong style="color:#276749">${f(Math.round(G.salaire*0.77*100)/100)}</strong></div>`:''}
+      </div>
+
+      <div style="background:var(--bg);border-radius:10px;padding:1rem">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">🏷️ Catégories</div>
+        <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:10px;max-height:180px;overflow-y:auto">
+          ${G.cats.map(cat=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;color:var(--text)">${cat.icon} ${cat.nom}</span>
+            <button onclick="deleteCat('${cat.id}')" style="background:none;border:none;color:#A32D2D;cursor:pointer;font-size:13px;padding:2px 6px;touch-action:manipulation">✕</button>
+          </div>`).join('')}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <input id="cat-icon" value="🏷️" style="width:44px;padding:6px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:16px;text-align:center;font-family:inherit">
+          <input id="cat-nom" placeholder="Nom de la catégorie" style="flex:1;min-width:100px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit">
+          <button onclick="addCat()" class="btn btn-p" style="white-space:nowrap">+ Ajouter</button>
+        </div>
+      </div>
+
+      <div style="background:var(--bg);border-radius:10px;padding:1rem">
         <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">Code PIN</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <input id="np" type="tel" maxlength="4" placeholder="Nouveau PIN (4 chiffres)" style="padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit">
@@ -840,7 +910,17 @@ function OE(id){G.eid=id||'new';render();}
 function OP(id){G.pid=id;render();setTimeout(UPS,50);}
 
 async function TR(id,cur){await SB.from('echeances').update({rembourse:!cur}).eq('id',id);await LD();render();T(!cur?'✓ Remboursé':'Annulé');}
-async function DR(id){if(!confirm('Supprimer ?'))return;await SB.from('echeances').delete().eq('id',id);await LD();render();T('Supprimé');}
+async function DR(id){
+  if(!confirm('Archiver ou supprimer définitivement ?')) return;
+  // On archive plutôt que supprimer
+  await SB.from('echeances').update({archive:true}).eq('id',id);
+  await LD();render();T('Archivé 🗃️');
+}
+async function deleteForever(id){
+  if(!confirm('Supprimer DÉFINITIVEMENT ? Cette action est irréversible.')) return;
+  await SB.from('echeances').delete().eq('id',id);
+  await LD();render();T('Supprimé définitivement');
+}
 
 async function SR(id){
   const marchand=document.getElementById('em').value.trim();
@@ -852,6 +932,7 @@ async function SR(id){
   const partage=pav!=='non';const partage_type=pav==='non'?'50/50':pav;
   const source=document.getElementById('esr').value;
   const notes=document.getElementById('en').value.trim();
+  const categorie=document.getElementById('ecat')?.value||'';
   const vt=document.getElementById('evt').value;
   if(!marchand||!due){alert('Marchand et date obligatoires');return;}
   let versement=0,montant_total=0,versements_perso=null;
@@ -881,7 +962,7 @@ async function SR(id){
     const mr=document.getElementById('ett')?.value;
     montant_total=mr?parseFloat(mr):versement*total_inst;
   }
-  const item={marchand,versement,montant_total,versement_type:vt,versements_perso,pays,total_inst,due,acheteur,partage,partage_type,source,notes};
+  const item={marchand,versement,montant_total,versement_type:vt,versements_perso,pays,total_inst,due,acheteur,partage,partage_type,source,notes,categorie};
   if(id==='new'){await SB.from('echeances').insert({...item,rembourse:false});T('Ajouté ✓');}
   else{await SB.from('echeances').update(item).eq('id',id);T('Modifié ✓');}
   await LD();G.eid=null;render();
@@ -1238,6 +1319,29 @@ async function removeBg(){
   const ps=document.getElementById('pin-screen');
   if(ps){ps.style.backgroundImage='';const ov=document.getElementById('pin-overlay');if(ov)ov.style.display='none';}
   T('Photo supprimée');
+}
+
+
+async function saveSalaire(){
+  const val = parseFloat(document.getElementById('sal-input')?.value)||0;
+  await SB.from('app_config').upsert({key:'salaire_brut',value:String(val)});
+  G.salaire = val;
+  render();
+  T('Salaire enregistré ✓');
+}
+
+async function addCat(){
+  const icon = document.getElementById('cat-icon')?.value.trim()||'🏷️';
+  const nom = document.getElementById('cat-nom')?.value.trim();
+  if(!nom){alert('Nom obligatoire');return;}
+  await SB.from('categories').insert({nom,icon,couleur:'#185FA5'});
+  await LD();render();T('Catégorie ajoutée ✓');
+}
+
+async function deleteCat(id){
+  if(!confirm('Supprimer cette catégorie ?'))return;
+  await SB.from('categories').delete().eq('id',id);
+  await LD();render();T('Catégorie supprimée');
 }
 
 async function AI(){await LD();render();setTimeout(drawChart, 100);}
