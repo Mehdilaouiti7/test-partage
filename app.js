@@ -817,28 +817,24 @@ function salaireWidget(){
   const totalAbosPartage = (G.abos||[]).filter(a=>a.actif&&a.partage).reduce((s,a)=>s+(parseFloat(a.montant)-(a.partage_type==='perso'?parseFloat(a.montant_copine||0):parseFloat(a.montant)/2)),0);
   const charges = Math.round((totalEch + totalAbos + totalAbosPartage)*100)/100;
   
-  // Salaire net ≈ brut * 0.77 (approximation France)
-  const net = Math.round(G.salaire * 0.77 * 100)/100;
-  const reste = Math.round((net - charges)*100)/100;
-  
   if(G.salaire===0) return '';
-  
+
+  const reste = Math.round((G.salaire - charges)*100)/100;
   const color = reste > 0 ? '#276749' : '#A32D2D';
-  const pct = Math.min(100, Math.max(0, Math.round((charges/net)*100)));
+  const pct = Math.min(100, Math.max(0, Math.round((charges/G.salaire)*100)));
   
   return `<div class="mbox" style="margin-bottom:1rem">
     <div class="mbox-t">💶 Salaire & Reste à vivre</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
-      <div class="kpi"><div class="kpi-l">Salaire brut</div><div class="kpi-v" style="color:var(--text)">${f(G.salaire)}</div></div>
+      <div class="kpi"><div class="kpi-l">Salaire</div><div class="kpi-v" style="color:var(--text)">${f(G.salaire)}</div></div>
       <div class="kpi"><div class="kpi-l">Charges mois</div><div class="kpi-v c-red">${f(charges)}</div></div>
       <div class="kpi"><div class="kpi-l">Reste à vivre</div><div class="kpi-v" style="color:${color}">${f(reste)}</div></div>
     </div>
     <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
       <div style="width:${pct}%;height:100%;background:${pct>80?'#A32D2D':pct>60?'#BA7517':'#276749'};border-radius:4px;transition:width .3s"></div>
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px">
-      <span>Charges : ${pct}% du salaire net</span>
-      <span>Net estimé : ${f(net)}</span>
+    <div style="font-size:10px;color:var(--text3);margin-top:3px;text-align:right">
+      <span>Charges : ${pct}% du salaire</span>
     </div>
   </div>`;
 }
