@@ -921,7 +921,7 @@ function PM(){
  
     ${r.partage?`<div class="psec"><h3>👤 Qui paie ?</h3>
       <div class="popt"><input type="radio" name="qui" id="qui1" value="moi" ${!c.pd?'checked':''} onchange="UPS()" ${c.pd?'disabled':''}><label for="qui1" style="${c.pd?'opacity:.4':''}">Moi — payer un versement <b>${f(c.cv)}</b>${c.pd?'<br><small style="color:#a0aec0">Déjà payé ce mois</small>':''}</label></div>
-      <div class="popt"><input type="radio" name="qui" id="qui2" value="cop" ${c.pd&&!r.rembourse?'checked':''} onchange="UPS()" ${r.rembourse||c.st==='soldé'?'disabled':''}><label for="qui2" style="${r.rembourse||c.st==='soldé'?'opacity:.4':''}">💑 Copine — payer sa part <b>${f(c.cc)}</b>${r.rembourse?'<br><small style="color:#a0aec0">Déjà remboursée</small>':''}</label></div>
+      <div class="popt"><input type="radio" name="qui" id="qui2" value="cop" onchange="UPS()" ${r.rembourse||c.st==='soldé'?'disabled':''}><label for="qui2" style="${r.rembourse||c.st==='soldé'?'opacity:.4':''}">💑 Copine — rembourser sa part <b>${f(c.cc)}</b>${r.rembourse?'<br><small style="color:#a0aec0">Déjà remboursée ✓</small>':c.pd?'<br><small style="color:#718096">En attente de remboursement</small>':''}</label></div>
     </div>`:`<div class="psec"><h3>Que voulez-vous payer ?</h3>
       <div class="popt"><input type="radio" name="pt" id="pt1" value="ech" checked onchange="UPS()"><label for="pt1">Payer la prochaine échéance <b>${f(c.cv)}</b><br><small style="color:#718096">→ Prochaine éch. : ${fd(addM(r.due))}</small></label></div>
       <div class="popt"><input type="radio" name="pt" id="pt2" value="tot" onchange="UPS()"><label for="pt2">Solder le reste complet <b>${f(c.restant)}</b></label></div>
@@ -1053,13 +1053,13 @@ async function CP(id){
   if(r.partage){
     const qui=document.querySelector('input[name="qui"]:checked')?.value||'moi';
     if(qui==='cop'){
-      // Copine paie juste sa part → marquer remboursé
+      // Copine confirme qu'elle a remboursé sa part
       u={rembourse:true};
       await SB.from('echeances').update(u).eq('id',id);
       await LD();G.pid=null;render();T('💑 Part copine remboursée ✓');
       return;
     } else {
-      // Moi je paie le versement
+      // Moi je paie le versement → rembourse redevient false pour le prochain mois
       u={last_paid_date:today,pays:r.pays+1,due:addM(r.due),rembourse:false};
     }
   } else {
