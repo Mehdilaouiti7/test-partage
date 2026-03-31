@@ -315,7 +315,9 @@ function calc(r){
   const nk=new Date().getMonth()+'-'+new Date().getFullYear();
   const lk=lp?(lp.getMonth()+'-'+lp.getFullYear()):'';
   const pd2=(lk===nk)||rest===0;
-  return{rest,total,deja,restant,pc:pc2,j,st,pd:pd2,cv:gv(r,r.pays),cc:gc(r,r.pays)};
+  // La copine peut marquer sa part comme remboursée si achat partagé et pas encore remboursé
+  const pdCop = !r.partage || r.rembourse || rest===0;
+  return{rest,total,deja,restant,pc:pc2,j,st,pd:pd2,pdCop,cv:gv(r,r.pays),cc:gc(r,r.pays)};
 }
  
 function aboForMonth(y,m){
@@ -916,15 +918,16 @@ function PM(){
   const c=calc(r);
   return`<div class="overlay" onclick="if(event.target===this){G.pid=null;render()}"><div class="modal">
     <h2>💳 Payer — ${r.marchand}</h2>
-    <div class="psec"><h3>Que voulez-vous payer ?</h3>
+ 
+    ${r.partage?`<div class="psec"><h3>👤 Qui paie ?</h3>
+      <div class="popt"><input type="radio" name="qui" id="qui1" value="moi" ${!c.pd?'checked':''} onchange="UPS()" ${c.pd?'disabled':''}><label for="qui1" style="${c.pd?'opacity:.4':''}">Moi — payer un versement <b>${f(c.cv)}</b>${c.pd?'<br><small style="color:#a0aec0">Déjà payé ce mois</small>':''}</label></div>
+      <div class="popt"><input type="radio" name="qui" id="qui2" value="cop" ${c.pd&&!r.rembourse?'checked':''} onchange="UPS()" ${r.rembourse||c.st==='soldé'?'disabled':''}><label for="qui2" style="${r.rembourse||c.st==='soldé'?'opacity:.4':''}">💑 Copine — payer sa part <b>${f(c.cc)}</b>${r.rembourse?'<br><small style="color:#a0aec0">Déjà remboursée</small>':''}</label></div>
+    </div>`:`<div class="psec"><h3>Que voulez-vous payer ?</h3>
       <div class="popt"><input type="radio" name="pt" id="pt1" value="ech" checked onchange="UPS()"><label for="pt1">Payer la prochaine échéance <b>${f(c.cv)}</b><br><small style="color:#718096">→ Prochaine éch. : ${fd(addM(r.due))}</small></label></div>
       <div class="popt"><input type="radio" name="pt" id="pt2" value="tot" onchange="UPS()"><label for="pt2">Solder le reste complet <b>${f(c.restant)}</b></label></div>
-    </div>
-    ${r.partage?`<div class="psec"><h3>Part de ma copine</h3>
-      <div class="popt"><input type="radio" name="cp" id="cp1" value="non" checked onchange="UPS()"><label for="cp1">Pas encore remboursée</label></div>
-      <div class="popt"><input type="radio" name="cp" id="cp2" value="oui" onchange="UPS()"><label for="cp2">Ma copine a payé sa part <b>${f(c.cc)}</b></label></div>
-    </div>`:''}
-    <div class="psum" id="ps"></div>
+    </div>`}
+ 
+    ${!r.partage?`<div class="psum" id="ps"></div>`:`<div class="psum" id="ps"></div>`}
     <div class="macts"><button class="btn" onclick="G.pid=null;render()">Annuler</button><button class="btn btn-p" onclick="CP('${r.id}')">✓ Confirmer</button></div>
   </div></div>`;
 }
@@ -932,12 +935,23 @@ function PM(){
 function UPS(){
   const r=G.rows.find(x=>x.id===G.pid);if(!r)return;
   const c=calc(r);
-  const pt=document.querySelector('input[name="pt"]:checked')?.value||'ech';
-  const co=r.partage?(document.querySelector('input[name="cp"]:checked')?.value==='oui'):false;
-  const m=pt==='tot'?c.restant:c.cv;const cp2=pt==='tot'?c.pc:c.cc;const deb=co?m-cp2:m;
-  let h=`<div class="psr"><span>Montant</span><span>${f(m)}</span></div>`;
-  if(r.partage)h+=`<div class="psr"><span>Part copine</span><span>${f(cp2)}</span></div><div class="psr"><span>Remboursée ?</span><span>${co?'✓ Oui':'⏳ Non'}</span></div>`;
-  h+=`<div class="psr tot"><span>Je débourse</span><span class="c-green">${f(deb)}</span></div>`;
+  let h='';
+  if(r.partage){
+    const qui=document.querySelector('input[name="qui"]:checked')?.value||'moi';
+    if(qui==='cop'){
+      h+=`<div class="psr"><span>💑 Part copine</span><span>${f(c.cc)}</span></div>`;
+      h+=`<div class="psr tot"><span>Copine débourse</span><span class="c-amber">${f(c.cc)}</span></div>`;
+    } else {
+      h+=`<div class="psr"><span>Versement total</span><span>${f(c.cv)}</span></div>`;
+      h+=`<div class="psr"><span>Part copine (à récup.)</span><span>${f(c.cc)}</span></div>`;
+      h+=`<div class="psr tot"><span>Je débourse</span><span class="c-green">${f(c.cv-c.cc)}</span></div>`;
+    }
+  } else {
+    const pt=document.querySelector('input[name="pt"]:checked')?.value||'ech';
+    const m=pt==='tot'?c.restant:c.cv;
+    h+=`<div class="psr"><span>Montant</span><span>${f(m)}</span></div>`;
+    h+=`<div class="psr tot"><span>Je débourse</span><span class="c-green">${f(m)}</span></div>`;
+  }
   document.getElementById('ps').innerHTML=h;
 }
  
@@ -1033,12 +1047,28 @@ async function SR(id){
  
 async function CP(id){
   const r=G.rows.find(x=>x.id===id);if(!r)return;
-  const pt=document.querySelector('input[name="pt"]:checked')?.value||'ech';
-  const co=r.partage?(document.querySelector('input[name="cp"]:checked')?.value==='oui'):false;
   const today=new Date().toISOString().split('T')[0];
-  let u={last_paid_date:today};
-  if(pt==='tot'){u.pays=r.total_inst;if(co)u.rembourse=true;}
-  else{u.pays=r.pays+1;u.due=addM(r.due);if(r.partage)u.rembourse=co?true:false;}
+  let u={};
+ 
+  if(r.partage){
+    const qui=document.querySelector('input[name="qui"]:checked')?.value||'moi';
+    if(qui==='cop'){
+      // Copine paie juste sa part → marquer remboursé
+      u={rembourse:true};
+      await SB.from('echeances').update(u).eq('id',id);
+      await LD();G.pid=null;render();T('💑 Part copine remboursée ✓');
+      return;
+    } else {
+      // Moi je paie le versement
+      u={last_paid_date:today,pays:r.pays+1,due:addM(r.due),rembourse:false};
+    }
+  } else {
+    const pt=document.querySelector('input[name="pt"]:checked')?.value||'ech';
+    u={last_paid_date:today};
+    if(pt==='tot'){u.pays=r.total_inst;}
+    else{u.pays=r.pays+1;u.due=addM(r.due);}
+  }
+ 
   await SB.from('echeances').update(u).eq('id',id);
   await LD();G.pid=null;render();T('Payé ✓ — Prochaine : '+fd(u.due||r.due));
 }
