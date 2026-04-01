@@ -71,6 +71,21 @@ async function PC(){
 
 let G={rows:[],archive_rows:[],tab:'all',comp:false,email:'',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous',abos:[],eabo:null,cats:[],salaire:0,cal:{y:new Date().getFullYear(),m:new Date().getMonth(),sel:null},show_calc:true,show_salaire:true,show_cats:true,show_email:true};
 
+function loadPrefs(){
+  const prefs = localStorage.getItem('myWalletPrefs');
+  if(prefs){
+    try{
+      const saved = JSON.parse(prefs);
+      Object.assign(G, saved);
+    }catch(e){}
+  }
+}
+
+function savePrefs(){
+  const p = {show_calc:G.show_calc, show_salaire:G.show_salaire, show_cats:G.show_cats, show_email:G.show_email};
+  localStorage.setItem('myWalletPrefs', JSON.stringify(p));
+}
+
 async function LD(){
   const [{data:d1,error:e1},{data:d2},{data:d3},{data:d4},{data:d5},{data:d6}]=await Promise.all([
     SB.from('echeances').select('*').eq('archive',false).order('due'),
@@ -90,6 +105,7 @@ async function LD(){
 }
 
 async function AI(){
+  loadPrefs();
   await LD();
   render();
 }
@@ -875,25 +891,25 @@ function SM(){
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="display:flex;align-items:center;justify-content:space-between">
             <span style="font-size:13px;color:var(--text)">📊 Résumé (Moi/Copine/Partagés)</span>
-            <button onclick="G.show_calc=!G.show_calc;render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_calc?'#185FA5':'var(--card)'};color:${G.show_calc?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
+            <button onclick="G.show_calc=!G.show_calc;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_calc?'#185FA5':'var(--card)'};color:${G.show_calc?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
               ${G.show_calc?'Visible':'Masqué'}
             </button>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <span style="font-size:13px;color:var(--text)">💶 Salaire brut</span>
-            <button onclick="G.show_salaire=!G.show_salaire;render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_salaire?'#185FA5':'var(--card)'};color:${G.show_salaire?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
+            <button onclick="G.show_salaire=!G.show_salaire;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_salaire?'#185FA5':'var(--card)'};color:${G.show_salaire?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
               ${G.show_salaire?'Visible':'Masqué'}
             </button>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <span style="font-size:13px;color:var(--text)">🏷️ Catégories</span>
-            <button onclick="G.show_cats=!G.show_cats;render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_cats?'#185FA5':'var(--card)'};color:${G.show_cats?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
+            <button onclick="G.show_cats=!G.show_cats;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_cats?'#185FA5':'var(--card)'};color:${G.show_cats?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
               ${G.show_cats?'Visible':'Masqué'}
             </button>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <span style="font-size:13px;color:var(--text)">🔔 Rappels email</span>
-            <button onclick="G.show_email=!G.show_email;render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_email?'#185FA5':'var(--card)'};color:${G.show_email?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
+            <button onclick="G.show_email=!G.show_email;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_email?'#185FA5':'var(--card)'};color:${G.show_email?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
               ${G.show_email?'Visible':'Masqué'}
             </button>
           </div>
