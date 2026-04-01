@@ -739,7 +739,7 @@ function EM(){
       <div class="fr full"><label>Catégorie</label>
         <select id="ecat">
           <option value="">— Sans catégorie —</option>
-          ${G.cats.map(cat=>`<option value="${cat.nom}" ${(r.categorie||''===cat.nom)?'selected':''}>${cat.icon} ${cat.nom}</option>`).join('')}
+          ${G.cats.map(cat=>`<option value="${cat.nom}" ${(r.categorie&&r.categorie===cat.nom)?'selected':''}>${cat.icon} ${cat.nom}</option>`).join('')}
         </select>
       </div>
       <div class="fr full"><label>Notes</label><input id="en" value="${r.notes||''}" placeholder="Ex: Vacances..."></div>
