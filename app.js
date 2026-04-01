@@ -69,20 +69,24 @@ async function PC(){
 
 // STATE
 
-let G={rows:[],tab:'all',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous',abos:[],eabo:null,cats:[],salaire:0,cal:{y:new Date().getFullYear(),m:new Date().getMonth(),sel:null}};
+let G={rows:[],archive_rows:[],tab:'all',comp:false,email:'',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous',abos:[],eabo:null,cats:[],salaire:0,cal:{y:new Date().getFullYear(),m:new Date().getMonth(),sel:null}};
 
 async function LD(){
-  const [{data:d1,error:e1},{data:d2},{data:d3},{data:d4}]=await Promise.all([
+  const [{data:d1,error:e1},{data:d2},{data:d3},{data:d4},{data:d5},{data:d6}]=await Promise.all([
     SB.from('echeances').select('*').eq('archive',false).order('due'),
     SB.from('abonnements').select('*').order('nom'),
     SB.from('categories').select('*').order('nom'),
-    SB.from('app_config').select('key,value').eq('key','salaire_brut').single()
+    SB.from('app_config').select('key,value').eq('key','salaire_brut').single(),
+    SB.from('echeances').select('*').eq('archive',true).order('created_at',{ascending:false}),
+    SB.from('app_config').select('key,value').eq('key','email_rappel').single()
   ]);
   if(e1){T('Erreur: '+e1.message);return;}
   G.rows=d1||[];
   G.abos=d2||[];
   G.cats=d3||[];
   G.salaire=parseFloat(d4?.value||0);
+  G.archive_rows=d5||[];
+  G.email=d6?.value||'';
 }
 
 function f(n){return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
@@ -200,6 +204,7 @@ function filtered(){
   const t=new Date();t.setHours(0,0,0,0);
   return G.rows.filter(r=>{
     const c=calc(r);const due=new Date(r.due+'T12:00:00');
+    if(G.tab==='archive') return false; // les archivés ont leur propre vue
     if(G.tab==='all'&&c.st==='soldé')return false;
     if(G.tab==='upcoming'&&(c.st==='soldé'||(due<t&&c.st!=='retard')))return false;
     if(G.tab==='past'&&c.st!=='soldé')return false;
@@ -584,7 +589,7 @@ function render(){
   const nSo=G.rows.filter(r=>calc(r).st==='soldé').length;
 
   document.getElementById('app').innerHTML=`
-<div class="topbar"><h1>MY <span>Wallet</span> 💛</h1><div class="topbar-r"><button class="btn" onclick="G.sm=true;render()" style="font-size:16px;padding:6px 10px">⚙️</button><button class="btn btn-p" onclick="OE(null)">+ Ajouter</button></div></div>
+<div class="topbar"><h1>MY <span>Wallet</span> 💛</h1><div class="topbar-r"><button class="btn" onclick="exportPDF()" title="Export PDF" style="padding:6px 10px">📄</button><button class="btn" onclick="G.sm=true;render()" style="font-size:16px;padding:6px 10px">⚙️</button><button class="btn btn-p" onclick="OE(null)">+ Ajouter</button></div></div>
 <div class="kpi-grid">
   <div class="kpi"><div class="kpi-l">Total engagé</div><div class="kpi-v c-blue">${f(k.te)}</div></div>
   <div class="kpi"><div class="kpi-l">Reste à payer</div><div class="kpi-v c-red">${f(k.tr)}</div></div>
@@ -594,10 +599,15 @@ function render(){
 </div>
 <div class="chart-box">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:8px">
-    <h3 style="margin:0">📊 ${G.sf?'6 derniers mois':'6 prochains mois'}</h3>
-    <button onclick="G.sf=!G.sf;render()" style="padding:4px 12px;border-radius:20px;border:1px solid ${G.sf?'var(--border)':'#185FA5'};background:${G.sf?'var(--card)':'#185FA5'};color:${G.sf?'var(--text3)':'#fff'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
-      ${G.sf?'📅 Voir les prochains mois':'🕐 Voir l\'historique'}
-    </button>
+    <h3 style="margin:0">📊 ${G.comp?'Comparaison N-1':G.sf?'6 derniers mois':'6 prochains mois'}</h3>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button onclick="G.sf=!G.sf;G.comp=false;render()" style="padding:4px 10px;border-radius:20px;border:1px solid ${!G.comp&&G.sf?'#185FA5':'var(--border)'};background:${!G.comp&&G.sf?'#185FA5':'var(--card)'};color:${!G.comp&&G.sf?'#fff':'var(--text3)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
+        ${G.sf?'📅 Prochains':'🕐 Historique'}
+      </button>
+      <button onclick="G.comp=!G.comp;render()" style="padding:4px 10px;border-radius:20px;border:1px solid ${G.comp?'#854F0B':'var(--border)'};background:${G.comp?'#854F0B':'var(--card)'};color:${G.comp?'#fff':'var(--text3)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
+        📊 vs N-1
+      </button>
+    </div>
   </div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
     <button onclick="G.cfa='tous';render()"   style="padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:${G.cfa==='tous'?'#185FA5':'var(--card)'};color:${G.cfa==='tous'?'#fff':'var(--text3)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">Tous</button>
@@ -613,7 +623,7 @@ function render(){
 ${alertSection()}${salaireWidget()}${calSection()}${MB(0)}
 ${MB(1)}
 
-<div class="sg">
+${previsionAnnuelle()}<div class="sg">
   <div class="sc"><h3 class="c-blue">👤 Moi (solo)</h3><div class="sr"><span>Total</span><span>${f(sm.e)}</span></div><div class="sr"><span>Payé</span><span class="c-green">${f(sm.d)}</span></div><div class="sr"><span>Reste</span><span class="c-red">${f(sm.r)}</span></div></div>
   <div class="sc"><h3 class="c-amber">💑 Copine (solo)</h3><div class="sr"><span>Total</span><span>${f(sc.e)}</span></div><div class="sr"><span>Payé</span><span class="c-green">${f(sc.d)}</span></div><div class="sr"><span>Reste</span><span class="c-red">${f(sc.r)}</span></div></div>
   <div class="sc"><h3 style="color:#27500A">🤝 Partagés</h3><div class="sr"><span>Total</span><span>${f(sp.e)}</span></div><div class="sr"><span>Payé</span><span class="c-green">${f(sp.d)}</span></div><div class="sr"><span>Reste</span><span class="c-red">${f(sp.r)}</span></div><div class="sr" style="border-top:1px solid #f0f4f8;margin-top:4px;padding-top:4px"><span>À récupérer</span><span class="c-purple">${f(sp.a)}</span></div></div>
@@ -622,6 +632,7 @@ ${MB(1)}
   <button class="tab ${G.tab==='all'?'on':''}" onclick="G.tab='all';render()">En cours (${nEn})</button>
   <button class="tab ${G.tab==='upcoming'?'on':''}" onclick="G.tab='upcoming';render()">À venir</button>
   <button class="tab ${G.tab==='past'?'on':''}" onclick="G.tab='past';render()">Soldés (${nSo})</button>
+  <button class="tab ${G.tab==='archive'?'on':''}" onclick="G.tab='archive';render()" style="color:#718096">🗃️ Archives (${G.archive_rows.length})</button>
 </div>
 <div class="filters">
   <input placeholder="Rechercher..." value="${G.fq}" oninput="G.fq=this.value;render()" style="min-width:120px;flex:1;max-width:180px">
@@ -688,6 +699,7 @@ ${rows.map(r=>{const c=calc(r);const pct=Math.round((r.pays/r.total_inst)*100);c
 </tr>`;}).join('')}
 </tbody></table>`}
 </div>
+${G.tab==='archive'?renderArchives():''}
 ${G.eid!==null?EM():''}${G.pid?PM():''}${G.sm?SM():''}`;
   setTimeout(drawChart, 50);
 }
@@ -890,6 +902,18 @@ function SM(){
       </div>
 
       <div style="background:var(--bg);border-radius:10px;padding:1rem">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">🔔 Rappels par email</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input id="email-input" type="email" value="${G.email||''}" placeholder="ton@email.com" style="padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit">
+          <div style="display:flex;gap:6px">
+            <button onclick="saveEmail()" class="btn btn-p" style="flex:1">💾 Enregistrer</button>
+            <button onclick="sendTestEmail()" class="btn" style="flex:1">🔔 Tester maintenant</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3)">Tu recevras un email 7 jours avant chaque échéance.</div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg);border-radius:10px;padding:1rem">
         <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">Code PIN</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <input id="np" type="tel" maxlength="4" placeholder="Nouveau PIN (4 chiffres)" style="padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit">
@@ -1045,6 +1069,75 @@ applyDark();
 
 // Graphique - reconstruit l'historique des paiements déjà effectués
 let chartInstance = null;
+
+function drawChartComp(canvas, curY, curM){
+  // Comparer les 6 derniers mois de cette année vs l'année précédente
+  const labels=[], dataN=[], dataN1=[];
+  for(let i=5;i>=0;i--){
+    const m = curM - i;
+    const y = curY + Math.floor(m/12);
+    const mm = ((m%12)+12)%12;
+    const label = new Date(y,mm,1).toLocaleDateString('fr-FR',{month:'short',year:'2-digit'});
+    labels.push(label);
+
+    // Simuler les versements passés pour ce mois
+    let totalN=0, totalN1=0;
+    G.rows.forEach(r=>{
+      if(r.pays===0)return;
+      const v=parseFloat(r.versement)||0;
+      if(!v)return;
+      const nextDue=new Date(r.due+'T12:00:00');
+      for(let p=1;p<=r.pays;p++){
+        const pd=new Date(nextDue.getTime());
+        pd.setMonth(pd.getMonth()-p);
+        if(pd.getFullYear()===y&&pd.getMonth()===mm){
+          let mv=v;
+          const vIdx=r.pays-p;
+          if(r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx]&&parseFloat(r.versements_perso[vIdx].montant))
+            mv=parseFloat(r.versements_perso[vIdx].montant);
+          totalN+=mv;
+        }
+        // Même mois l'année précédente
+        if(pd.getFullYear()===(y-1)&&pd.getMonth()===mm){
+          let mv=v;
+          const vIdx=r.pays-p;
+          if(r.versement_type==='perso'&&r.versements_perso&&r.versements_perso[vIdx]&&parseFloat(r.versements_perso[vIdx].montant))
+            mv=parseFloat(r.versements_perso[vIdx].montant);
+          totalN1+=mv;
+        }
+      }
+    });
+    dataN.push(Math.round(totalN*100)/100);
+    dataN1.push(Math.round(totalN1*100)/100);
+  }
+
+  const dark=document.body.classList.contains('dark');
+  const tc=dark?'#94a3b8':'#718096';
+  const gc=dark?'#334155':'#e2e8f0';
+
+  chartInstance=new Chart(canvas,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:`📅 ${curY}`,data:dataN,backgroundColor:'#185FA5CC',borderRadius:4},
+        {label:`📅 ${curY-1}`,data:dataN1,backgroundColor:'#854F0B88',borderRadius:4},
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{labels:{color:tc,font:{size:11},boxWidth:12}},
+        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label} : ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2})} €`}}
+      },
+      scales:{
+        x:{ticks:{color:tc,font:{size:10}},grid:{color:gc}},
+        y:{ticks:{color:tc,font:{size:10},callback:v=>v+' €'},grid:{color:gc},beginAtZero:true}
+      }
+    }
+  });
+}
+
 function drawChart(){
   if(typeof Chart==='undefined') return;
   const canvas = document.getElementById('chart-mois');
@@ -1053,6 +1146,13 @@ function drawChart(){
 
   const now = new Date();
   const curY = now.getFullYear(), curM = now.getMonth();
+
+  // Mode comparaison N vs N-1
+  if(G.comp){
+    drawChartComp(canvas, curY, curM);
+    return;
+  }
+
   const months = [];
 
   if(!G.sf){
@@ -1338,6 +1438,175 @@ async function deleteCat(id){
   if(!confirm('Supprimer cette catégorie ?'))return;
   await SB.from('categories').delete().eq('id',id);
   await LD();render();T('Catégorie supprimée');
+}
+
+
+// ── ARCHIVES ────────────────────────────────────────────────────
+function renderArchives(){
+  const rows = G.archive_rows;
+  if(rows.length===0) return '<div class="empty">🗃️ Aucun achat archivé</div>';
+  return '<div style="margin-top:1rem">' +
+    '<div style="font-size:13px;font-weight:600;color:var(--text3);margin-bottom:8px">🗃️ Achats archivés</div>' +
+    rows.map(r=>{
+      const total = parseFloat(r.montant_total)||0;
+      const deja = (parseFloat(r.versement)||0) * r.pays;
+      return '<div class="card" style="opacity:.8">' +
+        '<div class="ch">' +
+          '<div><div class="ctitle">'+r.marchand+'</div>' +
+          (r.notes?'<div class="cnote">'+r.notes+'</div>':'') + '</div>' +
+          '<div style="text-align:right"><div style="font-size:12px;color:var(--text3)">'+r.pays+'/'+r.total_inst+' versements</div>' +
+          '<div style="font-size:12px;font-weight:600;color:#276749">'+f(deja)+' payé</div></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;margin-top:6px">' +
+          '<button class="btn btn-sm btn-p" onclick="restoreArchive(''+r.id+'')">↩️ Restaurer</button>' +
+          '<button class="btn btn-sm btn-d" onclick="deleteForever(''+r.id+'')">🗑️ Supprimer</button>' +
+        '</div>' +
+      '</div>';
+    }).join('') +
+  '</div>';
+}
+
+async function restoreArchive(id){
+  await SB.from('echeances').update({archive:false}).eq('id',id);
+  await LD(); render(); T('Restauré ✓');
+}
+
+// ── COMPARAISON MOIS VS MOIS ─────────────────────────────────────
+// Intégré dans drawChart via un mode toggle G.sf2
+// G.sf=false → prochains mois  G.sf=true → historique  G.sf2=true → comparaison N-1
+
+// ── PRÉVISION ANNUELLE ───────────────────────────────────────────
+function previsionAnnuelle(){
+  const now = new Date();
+  const curY = now.getFullYear();
+  const months = [];
+  let totalAnnuel = 0;
+
+  for(let m=0; m<12; m++){
+    const d = GMD(curY, m);
+    const abos = aboForMonth(curY, m);
+    const allMi = [...d.mi, ...abos.mi];
+    const allCo = [...d.co, ...abos.co];
+    const tm = allMi.reduce((s,i)=>s+i.m,0);
+    const tc = allCo.reduce((s,i)=>s+i.m,0);
+    const tp = allMi.filter(i=>i.p).reduce((s,i)=>s+i.m,0) + allCo.filter(i=>i.p).reduce((s,i)=>s+i.m,0);
+    const total = Math.round((tm+tc+tp)*100)/100;
+    totalAnnuel += total;
+    months.push({
+      label: new Date(curY,m,1).toLocaleDateString('fr-FR',{month:'short'}),
+      moi: Math.round(tm*100)/100,
+      copine: Math.round(tc*100)/100,
+      partage: Math.round(tp*100)/100,
+      total,
+      isPast: m < now.getMonth()
+    });
+  }
+
+  return `<div class="chart-box" style="margin-bottom:1rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <h3 style="margin:0">📅 Prévision annuelle ${curY}</h3>
+      <span style="font-size:12px;font-weight:600;color:var(--text3)">Total : ${f(Math.round(totalAnnuel*100)/100)}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:2px;align-items:end;height:80px">
+      ${months.map((m,i)=>{
+        const maxVal = Math.max(...months.map(x=>x.total));
+        const h = maxVal>0 ? Math.round((m.total/maxVal)*100) : 0;
+        const isPast = m.isPast;
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end" title="${m.label}: ${f(m.total)}">
+          <div style="width:100%;background:${isPast?'#185FA580':'#185FA5CC'};height:${h}%;border-radius:3px 3px 0 0;min-height:${m.total>0?'3px':'0'}"></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:2px;margin-top:3px">
+      ${months.map(m=>`<div style="text-align:center;font-size:9px;color:var(--text3)">${m.label}</div>`).join('')}
+    </div>
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:3px">
+      ${months.map((m,i)=>m.total>0?`<div style="display:flex;justify-content:space-between;padding:3px 6px;border-radius:6px;background:${m.isPast?'var(--bg)':'var(--card)'};border:1px solid var(--border)">
+        <span style="font-size:11px;color:${m.isPast?'var(--text3)':'var(--text)'};font-weight:${m.isPast?'400':'600'}">${m.label} ${m.isPast?'(passé)':''}</span>
+        <span style="font-size:11px;font-weight:600;color:${m.isPast?'var(--text3)':'#185FA5'}">${f(m.total)}</span>
+      </div>`:'').join('')}
+    </div>
+  </div>`;
+}
+
+
+async function saveEmail(){
+  const val = document.getElementById('email-input')?.value.trim()||'';
+  await SB.from('app_config').upsert({key:'email_rappel',value:val});
+  G.email=val; T('Email enregistré ✓');
+}
+
+async function sendTestEmail(){
+  T('Envoi en cours...');
+  const res = await fetch('https://mqfyuprpztiyfpleannt.supabase.co/functions/v1/send-reminders');
+  const data = await res.json();
+  if(data.ok) T('✅ Email envoyé ! ('+data.echeances+' échéances)');
+  else T('❌ Erreur envoi email');
+}
+
+function exportPDF(){
+  const now = new Date();
+  const moisLabel = now.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  const k = kpis();
+  
+  // Construire le contenu HTML du PDF
+  const rows = G.rows.filter(r=>{
+    const c=calc(r);
+    const due=new Date(r.due+'T12:00:00');
+    return due.getMonth()===now.getMonth()&&due.getFullYear()===now.getFullYear();
+  });
+
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    body{font-family:Arial,sans-serif;padding:20px;color:#1a202c;font-size:12px}
+    h1{color:#185FA5;font-size:20px;margin-bottom:5px}
+    h2{font-size:14px;color:#4a5568;margin:16px 0 8px}
+    .kpi-row{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+    .kpi{background:#f7fafc;border-radius:8px;padding:10px 16px;min-width:100px}
+    .kpi-l{font-size:10px;color:#718096;text-transform:uppercase}
+    .kpi-v{font-size:16px;font-weight:bold;color:#185FA5}
+    table{width:100%;border-collapse:collapse;margin-bottom:16px}
+    th{background:#185FA5;color:white;padding:6px 8px;text-align:left;font-size:11px}
+    td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11px}
+    tr:nth-child(even) td{background:#f7fafc}
+    .total{font-weight:bold;background:#EAF3DE!important}
+    .footer{margin-top:20px;font-size:10px;color:#a0aec0;text-align:center}
+  </style></head><body>
+  <h1>💛 MY Wallet — Récapitulatif ${moisLabel}</h1>
+  <div style="color:#718096;font-size:11px;margin-bottom:12px">Généré le ${now.toLocaleDateString('fr-FR')}</div>
+  
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-l">Total engagé</div><div class="kpi-v">${f(k.te)}</div></div>
+    <div class="kpi"><div class="kpi-l">Reste à payer</div><div class="kpi-v" style="color:#A32D2D">${f(k.tr)}</div></div>
+    <div class="kpi"><div class="kpi-l">Ma part</div><div class="kpi-v">${f(k.mr)}</div></div>
+    <div class="kpi"><div class="kpi-l">Part copine</div><div class="kpi-v" style="color:#854F0B">${f(k.cr)}</div></div>
+  </div>
+
+  <h2>📅 Échéances du mois</h2>
+  <table>
+    <thead><tr><th>Marchand</th><th>Acheteur</th><th>Versement</th><th>Payé</th><th>Restant</th><th>Statut</th></tr></thead>
+    <tbody>
+      ${rows.map(r=>{const c=calc(r);return`<tr><td>${r.marchand}</td><td>${r.acheteur}${r.partage?' (Partagé)':''}</td><td>${f(c.cv)}</td><td>${f(c.deja)}</td><td>${f(c.restant)}</td><td>${c.st}</td></tr>`;}).join('')}
+      <tr class="total"><td colspan="2"><b>Total</b></td><td></td><td><b>${f(rows.reduce((s,r)=>s+calc(r).deja,0))}</b></td><td><b>${f(rows.reduce((s,r)=>s+calc(r).restant,0))}</b></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h2>🔄 Abonnements actifs</h2>
+  <table>
+    <thead><tr><th>Nom</th><th>Montant</th><th>Jour</th><th>Acheteur</th></tr></thead>
+    <tbody>
+      ${(G.abos||[]).filter(a=>a.actif).map(a=>`<tr><td>${a.nom}</td><td>${f(parseFloat(a.montant))}</td><td>J${a.jour_prelevement}</td><td>${a.acheteur}${a.partage?' (Partagé)':''}</td></tr>`).join('')}
+    </tbody>
+  </table>
+
+  <div class="footer">MY Wallet 💛 — Rapport confidentiel</div>
+  </body></html>`;
+
+  // Ouvrir dans une nouvelle fenêtre et imprimer
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(()=>win.print(), 500);
 }
 
 async function AI(){await LD();render();setTimeout(drawChart, 100);}
