@@ -1537,16 +1537,26 @@ function previsionAnnuelle(){
 
 async function saveEmail(){
   const val = document.getElementById('email-input')?.value.trim()||'';
+  if(!val){alert('Adresse email obligatoire');return;}
   await SB.from('app_config').upsert({key:'email_rappel',value:val});
   G.email=val; T('Email enregistré ✓');
 }
 
 async function sendTestEmail(){
-  T('Envoi en cours...');
-  const res = await fetch('https://mqfyuprpztiyfpleannt.supabase.co/functions/v1/send-reminders');
-  const data = await res.json();
-  if(data.ok) T('✅ Email envoyé ! ('+data.echeances+' échéances)');
-  else T('❌ Erreur envoi email');
+  try{
+    T('Envoi en cours...');
+    const res = await fetch('/api/send-reminders', {
+      method:'GET',
+      headers:{Accept:'application/json'}
+    });
+    const data = await res.json();
+    if(!res.ok||!data?.ok){
+      throw new Error(data?.error||'Erreur envoi email');
+    }
+    T('✅ Email envoyé ! ('+(data.echeances||0)+' échéance(s))');
+  }catch(error){
+    T('❌ Envoi impossible: '+(error?.message||'erreur inconnue'));
+  }
 }
 
 function exportPDF(){
