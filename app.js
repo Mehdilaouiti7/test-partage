@@ -1548,65 +1548,60 @@ function exportPDF(){
   const now = new Date();
   const moisLabel = now.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
   const k = kpis();
-  
-  // Construire le contenu HTML du PDF
-  const rows = G.rows.filter(r=>{
-    const c=calc(r);
+  const moisRows = G.rows.filter(r=>{
+    const c2=calc(r);
     const due=new Date(r.due+'T12:00:00');
     return due.getMonth()===now.getMonth()&&due.getFullYear()===now.getFullYear();
   });
 
-  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>
-    body{font-family:Arial,sans-serif;padding:20px;color:#1a202c;font-size:12px}
-    h1{color:#185FA5;font-size:20px;margin-bottom:5px}
-    h2{font-size:14px;color:#4a5568;margin:16px 0 8px}
-    .kpi-row{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
-    .kpi{background:#f7fafc;border-radius:8px;padding:10px 16px;min-width:100px}
-    .kpi-l{font-size:10px;color:#718096;text-transform:uppercase}
-    .kpi-v{font-size:16px;font-weight:bold;color:#185FA5}
-    table{width:100%;border-collapse:collapse;margin-bottom:16px}
-    th{background:#185FA5;color:white;padding:6px 8px;text-align:left;font-size:11px}
-    td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11px}
-    tr:nth-child(even) td{background:#f7fafc}
-    .total{font-weight:bold;background:#EAF3DE!important}
-    .footer{margin-top:20px;font-size:10px;color:#a0aec0;text-align:center}
-  </style></head><body>
-  <h1>💛 MY Wallet — Récapitulatif ${moisLabel}</h1>
-  <div style="color:#718096;font-size:11px;margin-bottom:12px">Généré le ${now.toLocaleDateString('fr-FR')}</div>
-  
-  <div class="kpi-row">
-    <div class="kpi"><div class="kpi-l">Total engagé</div><div class="kpi-v">${f(k.te)}</div></div>
-    <div class="kpi"><div class="kpi-l">Reste à payer</div><div class="kpi-v" style="color:#A32D2D">${f(k.tr)}</div></div>
-    <div class="kpi"><div class="kpi-l">Ma part</div><div class="kpi-v">${f(k.mr)}</div></div>
-    <div class="kpi"><div class="kpi-l">Part copine</div><div class="kpi-v" style="color:#854F0B">${f(k.cr)}</div></div>
-  </div>
+  let tableRows = moisRows.map(r=>{
+    const c2=calc(r);
+    return '<tr><td>'+r.marchand+'</td><td>'+r.acheteur+(r.partage?' (Partagé)':'')+'</td><td>'+f(c2.cv)+'</td><td>'+f(c2.deja)+'</td><td>'+f(c2.restant)+'</td><td>'+c2.st+'</td></tr>';
+  }).join('');
 
-  <h2>📅 Échéances du mois</h2>
-  <table>
-    <thead><tr><th>Marchand</th><th>Acheteur</th><th>Versement</th><th>Payé</th><th>Restant</th><th>Statut</th></tr></thead>
-    <tbody>
-      ${rows.map(r=>{const c=calc(r);return`<tr><td>${r.marchand}</td><td>${r.acheteur}${r.partage?' (Partagé)':''}</td><td>${f(c.cv)}</td><td>${f(c.deja)}</td><td>${f(c.restant)}</td><td>${c.st}</td></tr>`;}).join('')}
-      <tr class="total"><td colspan="2"><b>Total</b></td><td></td><td><b>${f(rows.reduce((s,r)=>s+calc(r).deja,0))}</b></td><td><b>${f(rows.reduce((s,r)=>s+calc(r).restant,0))}</b></td><td></td></tr>
-    </tbody>
-  </table>
+  const totalPaye = moisRows.reduce((s,r)=>s+calc(r).deja,0);
+  const totalReste = moisRows.reduce((s,r)=>s+calc(r).restant,0);
+  tableRows += '<tr style="font-weight:bold;background:#EAF3DE"><td colspan="2">Total</td><td></td><td>'+f(totalPaye)+'</td><td>'+f(totalReste)+'</td><td></td></tr>';
 
-  <h2>🔄 Abonnements actifs</h2>
-  <table>
-    <thead><tr><th>Nom</th><th>Montant</th><th>Jour</th><th>Acheteur</th></tr></thead>
-    <tbody>
-      ${(G.abos||[]).filter(a=>a.actif).map(a=>`<tr><td>${a.nom}</td><td>${f(parseFloat(a.montant))}</td><td>J${a.jour_prelevement}</td><td>${a.acheteur}${a.partage?' (Partagé)':''}</td></tr>`).join('')}
-    </tbody>
-  </table>
+  let aboRows = (G.abos||[]).filter(a=>a.actif).map(a=>{
+    return '<tr><td>'+a.nom+'</td><td>'+f(parseFloat(a.montant))+'</td><td>J'+a.jour_prelevement+'</td><td>'+a.acheteur+(a.partage?' (Partagé)':'')+'</td></tr>';
+  }).join('');
 
-  <div class="footer">MY Wallet 💛 — Rapport confidentiel</div>
-  </body></html>`;
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'
+    + 'body{font-family:Arial,sans-serif;padding:20px;color:#1a202c;font-size:12px}'
+    + 'h1{color:#185FA5;font-size:20px;margin-bottom:5px}'
+    + 'h2{font-size:14px;color:#4a5568;margin:16px 0 8px}'
+    + '.kpi-row{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}'
+    + '.kpi{background:#f7fafc;border-radius:8px;padding:10px 16px;min-width:100px}'
+    + '.kpi-l{font-size:10px;color:#718096;text-transform:uppercase}'
+    + '.kpi-v{font-size:16px;font-weight:bold;color:#185FA5}'
+    + 'table{width:100%;border-collapse:collapse;margin-bottom:16px}'
+    + 'th{background:#185FA5;color:white;padding:6px 8px;text-align:left;font-size:11px}'
+    + 'td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11px}'
+    + 'tr:nth-child(even) td{background:#f7fafc}'
+    + '.footer{margin-top:20px;font-size:10px;color:#a0aec0;text-align:center}'
+    + '</style></head><body>'
+    + '<h1>💛 MY Wallet — Récapitulatif '+moisLabel+'</h1>'
+    + '<div style="color:#718096;font-size:11px;margin-bottom:12px">Généré le '+now.toLocaleDateString('fr-FR')+'</div>'
+    + '<div class="kpi-row">'
+    + '<div class="kpi"><div class="kpi-l">Total engagé</div><div class="kpi-v">'+f(k.te)+'</div></div>'
+    + '<div class="kpi"><div class="kpi-l">Reste à payer</div><div class="kpi-v" style="color:#A32D2D">'+f(k.tr)+'</div></div>'
+    + '<div class="kpi"><div class="kpi-l">Ma part</div><div class="kpi-v">'+f(k.mr)+'</div></div>'
+    + '<div class="kpi"><div class="kpi-l">Part copine</div><div class="kpi-v" style="color:#854F0B">'+f(k.cr)+'</div></div>'
+    + '</div>'
+    + '<h2>📅 Échéances du mois</h2>'
+    + '<table><thead><tr><th>Marchand</th><th>Acheteur</th><th>Versement</th><th>Payé</th><th>Restant</th><th>Statut</th></tr></thead>'
+    + '<tbody>'+tableRows+'</tbody></table>'
+    + '<h2>🔄 Abonnements actifs</h2>'
+    + '<table><thead><tr><th>Nom</th><th>Montant</th><th>Jour</th><th>Acheteur</th></tr></thead>'
+    + '<tbody>'+aboRows+'</tbody></table>'
+    + '<div class="footer">MY Wallet 💛 — Rapport confidentiel</div>'
+    + '</body></html>';
 
-  // Ouvrir dans une nouvelle fenêtre et imprimer
   const win = window.open('','_blank');
   win.document.write(html);
   win.document.close();
   setTimeout(()=>win.print(), 500);
 }
 
-async function AI(){await LD();render();setTimeout(drawChart, 100);}
+}
