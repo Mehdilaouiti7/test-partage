@@ -1458,8 +1458,8 @@ function renderArchives(){
           '<div style="font-size:12px;font-weight:600;color:#276749">'+f(deja)+' payé</div></div>' +
         '</div>' +
         '<div style="display:flex;gap:6px;margin-top:6px">' +
-          '<button class="btn btn-sm btn-p" onclick="restoreArchive(''+r.id+'')">↩️ Restaurer</button>' +
-          '<button class="btn btn-sm btn-d" onclick="deleteForever(''+r.id+'')">🗑️ Supprimer</button>' +
+          '<button class="btn btn-sm btn-p" onclick="restoreArchive(\''+r.id+'\')">↩️ Restaurer</button>' +
+          '<button class="btn btn-sm btn-d" onclick="deleteForever(\''+r.id+'\')">🗑️ Supprimer</button>' +
         '</div>' +
       '</div>';
     }).join('') +
@@ -1602,6 +1602,4 @@ function exportPDF(){
   win.document.write(html);
   win.document.close();
   setTimeout(()=>win.print(), 500);
-}
-
 }
