@@ -69,48 +69,8 @@ async function PC(){
 
 // STATE
 
-let G={rows:[],archive_rows:[],tab:'all',comp:false,email:'',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous',abos:[],eabo:null,cats:[],salaire:0,cal:{y:new Date().getFullYear(),m:new Date().getMonth(),sel:null},show_calc:true,show_salaire:true,show_cats:true,show_email:true,show_chart:true,show_chart_cat:true,show_summary:true,show_cards:true,show_table:true,show_calendar:true,show_abos:true,show_alerts:true};
+let G={rows:[],archive_rows:[],tab:'all',comp:false,email:'',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,cfa:'tous',abos:[],eabo:null,cats:[],salaire:0,cal:{y:new Date().getFullYear(),m:new Date().getMonth(),sel:null}};
 
-function loadPrefs(){
-  const prefs = localStorage.getItem('myWalletPrefs');
-  if(prefs){
-    try{
-      const saved = JSON.parse(prefs);
-      Object.assign(G, saved);
-    }catch(e){}
-  }
-}
-
-function savePrefs(){
-  const p = {
-    show_calc:G.show_calc,
-    show_salaire:G.show_salaire,
-    show_cats:G.show_cats,
-    show_email:G.show_email,
-    show_chart:G.show_chart,
-    show_chart_cat:G.show_chart_cat,
-    show_summary:G.show_summary,
-    show_cards:G.show_cards,
-    show_table:G.show_table,
-    show_calendar:G.show_calendar,
-    show_abos:G.show_abos,
-    show_alerts:G.show_alerts
-  };
-  localStorage.setItem('myWalletPrefs', JSON.stringify(p));
-}
-
-function setMainBlocksVisibility(visible){
-  G.show_chart = visible;
-  G.show_chart_cat = visible;
-  G.show_summary = visible;
-  G.show_cards = visible;
-  G.show_table = visible;
-  G.show_calendar = visible;
-  G.show_abos = visible;
-  G.show_alerts = visible;
-  savePrefs();
-  render();
-}
 
 async function LD(){
   const [{data:d1,error:e1},{data:d2},{data:d3},{data:d4},{data:d5},{data:d6}]=await Promise.all([
@@ -131,7 +91,6 @@ async function LD(){
 }
 
 async function AI(){
-  loadPrefs();
   await LD();
   render();
 }
@@ -644,7 +603,7 @@ function render(){
   <div class="kpi"><div class="kpi-l">Part copine</div><div class="kpi-v c-amber">${f(k.cr)}</div></div>
   <div class="kpi"><div class="kpi-l">À récupérer</div><div class="kpi-v c-purple">${f(k.tp)}</div></div>
 </div>
-${G.show_chart?`<div class="chart-box">
+<div class="chart-box">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:8px">
     <h3 style="margin:0">📊 ${G.comp?'Comparaison N-1':G.sf?'6 derniers mois':'6 prochains mois'}</h3>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -666,22 +625,22 @@ ${G.show_chart?`<div class="chart-box">
   </div>
   <canvas id="chart-mois" height="200"></canvas>
   <div id="chart-detail" style="display:none;margin-top:10px;background:var(--bg);border-radius:8px;padding:10px;font-size:12px"></div>
-</div>`:''}
-${G.show_chart_cat?`<div class="chart-box">
+</div>
+<div class="chart-box">
   <h3 style="margin-bottom:1rem">🏷️ Dépenses par catégorie</h3>
   <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap">
     <canvas id="chart-cat" height="150" width="150" style="max-width:200px"></canvas>
     <div id="cat-legend" style="flex:1;min-width:150px;display:flex;flex-direction:column;gap:8px"></div>
   </div>
-</div>`:''}
-${G.show_alerts?alertSection():''}${G.show_salaire?salaireWidget():''}${G.show_calendar?calSection():''}${G.show_abos?MB(0):''}
-${G.show_abos?MB(1):''}
+</div>
+${alertSection()}${salaireWidget()}${calSection()}${MB(0)}
+${MB(1)}
 
-${previsionAnnuelle()}${G.show_summary&&G.show_calc?`<div class="sg">
+${previsionAnnuelle()}<div class="sg">
   <div class="sc"><h3 class="c-blue">👤 Moi (solo)</h3><div class="sr"><span>Total</span><span>${f(sm.e)}</span></div><div class="sr"><span>Payé</span><span class="c-green">${f(sm.d)}</span></div><div class="sr"><span>Reste</span><span class="c-red">${f(sm.r)}</span></div></div>
   <div class="sc"><h3 class="c-amber">💑 Copine (solo)</h3><div class="sr"><span>Total</span><span>${f(sc.e)}</span></div><div class="sr"><span>Payé</span><span class="c-green">${f(sc.d)}</span></div><div class="sr"><span>Reste</span><span class="c-red">${f(sc.r)}</span></div></div>
   <div class="sc"><h3 style="color:#27500A">🤝 Partagés</h3><div class="sr"><span>Total</span><span>${f(sp.e)}</span></div><div class="sr"><span>Payé</span><span class="c-green">${f(sp.d)}</span></div><div class="sr"><span>Reste</span><span class="c-red">${f(sp.r)}</span></div><div class="sr" style="border-top:1px solid #f0f4f8;margin-top:4px;padding-top:4px"><span>À récupérer</span><span class="c-purple">${f(sp.a)}</span></div></div>
-</div>`:''}<br>${G.show_abos?aboSection():''}
+</div><br>${aboSection()}
 <div class="tabs">
   <button class="tab ${G.tab==='all'?'on':''}" onclick="G.tab='all';render()">En cours (${nEn})</button>
   <button class="tab ${G.tab==='upcoming'?'on':''}" onclick="G.tab='upcoming';render()">À venir</button>
@@ -711,7 +670,7 @@ ${previsionAnnuelle()}${G.show_summary&&G.show_calc?`<div class="sg">
     <option value="recent"  ${G.tri==='recent' ?'selected':''}>🕐 Ajout récent</option>
   </select>
 </div>
-${G.show_cards?`<div class="cards">
+<div class="cards">
 ${rows.length===0?'<div class="empty">Aucun résultat</div>':rows.map(r=>{
   const c=calc(r);const pct=Math.round((r.pays/r.total_inst)*100);
   const bc=c.st==='soldé'?'#276749':c.st==='retard'?'#A32D2D':'#185FA5';
@@ -739,8 +698,8 @@ ${rows.length===0?'<div class="empty">Aucun résultat</div>':rows.map(r=>{
     </div>
   </div>`;
 }).join('')}
-</div>`:''}
-${G.show_table?`<div class="twrap">
+</div>
+<div class="twrap">
 ${rows.length===0?'<div class="empty">Aucun résultat</div>':`<table><thead><tr><th>Marchand</th><th>Source</th><th>Acheteur</th><th>Versement</th><th>Payé</th><th>Total</th><th>Progrès</th><th>Restant</th><th>Prochaine éch.</th><th>Jours</th><th>Statut</th><th>Copine</th><th>Actions</th></tr></thead><tbody>
 ${rows.map(r=>{const c=calc(r);const pct=Math.round((r.pays/r.total_inst)*100);const bc=c.st==='soldé'?'#276749':c.st==='retard'?'#A32D2D':'#185FA5';const catIcon = r.categorie ? G.cats.find(cat=>cat.nom===r.categorie)?.icon || '' : '';return`<tr onclick="OE('${r.id}')">
   <td><div style="font-weight:500">${catIcon ? catIcon + ' ' : ''}${r.marchand}</div>${r.notes?`<div style="font-size:10px;color:#a0aec0">${r.notes}</div>`:''}</td>
@@ -753,24 +712,9 @@ ${rows.map(r=>{const c=calc(r);const pct=Math.round((r.pays/r.total_inst)*100);c
   <td onclick="event.stopPropagation()"><div style="display:flex;gap:4px"><button class="btn-pay" ${c.pd?'disabled':''} onclick="OP('${r.id}')">${c.pd&&c.st!=='soldé'?'✓':'💳'}</button><button class="btn btn-sm btn-d" onclick="DR('${r.id}')">✕</button></div></td>
 </tr>`;}).join('')}
 </tbody></table>`}
-</div>`:''}
+</div>
 ${G.tab==='archive'?renderArchives():''}
 ${G.eid!==null?EM():''}${G.pid?PM():''}${G.sm?SM():''}`;
-  const _hasOverlay = !!(G.sm || G.eid !== null || G.pid);
-  if(_hasOverlay){
-    if(!document.body.classList.contains('modal-open')){
-      document.body._savedScrollY = window.scrollY;
-      document.body.style.top = `-${window.scrollY}px`;
-      document.body.classList.add('modal-open');
-    }
-  } else {
-    if(document.body.classList.contains('modal-open')){
-      const y = document.body._savedScrollY || 0;
-      document.body.classList.remove('modal-open');
-      document.body.style.top = '';
-      window.scrollTo(0, y);
-    }
-  }
   setTimeout(drawChart, 50);
   setTimeout(drawCategoryChart, 50);
 }
@@ -923,94 +867,24 @@ function salaireWidget(){
 }
 
 function SM(){
-  return`<div class="overlay" onclick="if(event.target===this){G.sm=false;render()}"><div class="modal">
+  return`<div class="overlay" onclick="if(event.target===this){G.sm=false;render()}"><div class="modal modal-settings">
     <h2>⚙️ Réglages</h2>
     <div style="display:flex;flex-direction:column;gap:16px">
 
-      <div style="background:var(--bg);border-radius:10px;padding:1rem">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">🧱 Blocs de l'application</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <button onclick="setMainBlocksVisibility(true)" class="btn" style="font-size:11px;padding:6px 10px">✅ Tout afficher</button>
-          <button onclick="setMainBlocksVisibility(false)" class="btn" style="font-size:11px;padding:6px 10px">🙈 Tout masquer</button>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">📊 Graphique mensuel</span>
-            <button onclick="G.show_chart=!G.show_chart;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_chart?'#185FA5':'var(--card)'};color:${G.show_chart?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">${G.show_chart?'Visible':'Masqué'}</button>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">🥧 Camembert catégories</span>
-            <button onclick="G.show_chart_cat=!G.show_chart_cat;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_chart_cat?'#185FA5':'var(--card)'};color:${G.show_chart_cat?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">${G.show_chart_cat?'Visible':'Masqué'}</button>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">📋 Bloc résumé</span>
-            <button onclick="G.show_summary=!G.show_summary;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_summary?'#185FA5':'var(--card)'};color:${G.show_summary?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">${G.show_summary?'Visible':'Masqué'}</button>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">🎴 Vue cartes</span>
-            <button onclick="G.show_cards=!G.show_cards;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_cards?'#185FA5':'var(--card)'};color:${G.show_cards?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">${G.show_cards?'Visible':'Masqué'}</button>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">📊 Tableau</span>
-            <button onclick="G.show_table=!G.show_table;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_table?'#185FA5':'var(--card)'};color:${G.show_table?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">${G.show_table?'Visible':'Masqué'}</button>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">📅 Calendrier</span>
-            <button onclick="G.show_calendar=!G.show_calendar;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_calendar?'#185FA5':'var(--card)'};color:${G.show_calendar?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">${G.show_calendar?'Visible':'Masqué'}</button>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">💼 Abonnements</span>
-            <button onclick="G.show_abos=!G.show_abos;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_abos?'#185FA5':'var(--card)'};color:${G.show_abos?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">${G.show_abos?'Visible':'Masqué'}</button>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">⚠️ Alertes</span>
-            <button onclick="G.show_alerts=!G.show_alerts;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_alerts?'#185FA5':'var(--card)'};color:${G.show_alerts?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">${G.show_alerts?'Visible':'Masqué'}</button>
-          </div>
-        </div>
-
-        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">👁️ Affichage des sections</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">📊 Résumé (Moi/Copine/Partagés)</span>
-            <button onclick="G.show_calc=!G.show_calc;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_calc?'#185FA5':'var(--card)'};color:${G.show_calc?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
-              ${G.show_calc?'Visible':'Masqué'}
-            </button>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">💶 Salaire brut</span>
-            <button onclick="G.show_salaire=!G.show_salaire;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_salaire?'#185FA5':'var(--card)'};color:${G.show_salaire?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
-              ${G.show_salaire?'Visible':'Masqué'}
-            </button>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">🏷️ Catégories</span>
-            <button onclick="G.show_cats=!G.show_cats;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_cats?'#185FA5':'var(--card)'};color:${G.show_cats?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
-              ${G.show_cats?'Visible':'Masqué'}
-            </button>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;color:var(--text)">🔔 Rappels email</span>
-            <button onclick="G.show_email=!G.show_email;savePrefs();render()" style="padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:${G.show_email?'#185FA5':'var(--card)'};color:${G.show_email?'#fff':'var(--text)'};font-size:11px;cursor:pointer;font-family:inherit;touch-action:manipulation">
-              ${G.show_email?'Visible':'Masqué'}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style="background:var(--bg);border-radius:10px;padding:1rem">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">Apparence</div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:13px;color:var(--text)">🌙 Mode sombre</span>
+      <div class="s-card">
+        <div class="s-head">Apparence</div>
+        <div class="s-row">
+          <span>🌙 Mode sombre</span>
           <button onclick="toggleDark()" style="padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:${isDark?'#185FA5':'var(--card)'};color:${isDark?'#fff':'var(--text)'};font-size:12px;cursor:pointer;font-family:inherit;touch-action:manipulation">
             ${isDark?'Activé ✓':'Désactivé'}
           </button>
         </div>
       </div>
 
-      <div style="background:var(--bg);border-radius:10px;padding:1rem">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">Photo de fond (écran PIN)</div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <label style="cursor:pointer;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;touch-action:manipulation;white-space:nowrap">
+      <div class="s-card">
+        <div class="s-head">Photo de fond (écran PIN)</div>
+        <div class="s-photo-actions">
+          <label class="s-upload-btn">
             🖼 Choisir une photo
             <input type="file" accept="image/*" style="display:none" onchange="uploadBg(this)">
           </label>
@@ -1018,8 +892,8 @@ function SM(){
         </div>
       </div>
 
-      <div style="background:var(--bg);border-radius:10px;padding:1rem">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">💶 Salaire brut mensuel</div>
+      <div class="s-card">
+        <div class="s-head">💶 Salaire brut mensuel</div>
         <div style="display:flex;gap:8px;align-items:center">
           <input id="sal-input" type="number" step="100" value="${G.salaire||''}" placeholder="Ex: 2500" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit">
           <button onclick="saveSalaire()" class="btn btn-p">Enregistrer</button>
@@ -1027,8 +901,8 @@ function SM(){
         ${G.salaire>0?`<div style="font-size:11px;color:var(--text3);margin-top:6px">Net estimé (~77%) : <strong style="color:#276749">${f(Math.round(G.salaire*0.77*100)/100)}</strong></div>`:''}
       </div>
 
-      ${G.show_cats?`<div style="background:var(--bg);border-radius:10px;padding:1rem">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">🏷️ Catégories</div>
+      <div class="s-card">
+        <div class="s-head">🏷️ Catégories</div>
         <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:10px;max-height:180px;overflow-y:auto">
           ${G.cats.map(cat=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
             <span style="font-size:13px;color:var(--text)">${cat.icon} ${cat.nom}</span>
@@ -1040,23 +914,23 @@ function SM(){
           <input id="cat-nom" placeholder="Nom de la catégorie" style="flex:1;min-width:100px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit">
           <button onclick="addCat()" class="btn btn-p" style="white-space:nowrap">+ Ajouter</button>
         </div>
-      </div>`:''}
+      </div>
 
-      ${G.show_email?`<div style="background:var(--bg);border-radius:10px;padding:1rem">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">🔔 Rappels par email</div>
+      <div class="s-card">
+        <div class="s-head">🔔 Rappels par email</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <input id="email-input" type="email" value="${G.email||''}" placeholder="ton@email.com" style="padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit">
-          <div style="display:flex;gap:6px">
-            <button onclick="saveEmail()" class="btn btn-p" style="flex:1">💾 Enregistrer</button>
-            <button onclick="sendTestEmail()" class="btn" style="flex:1">🔔 Déclencher les rappels</button>
+          <div class="s-actions">
+            <button onclick="saveEmail()" class="btn btn-p">💾 Enregistrer</button>
+            <button onclick="sendTestEmail()" class="btn">🔔 Déclencher les rappels</button>
           </div>
           <button onclick="checkEmailStatus()" class="btn" style="width:100%">🧪 Diagnostic email</button>
           <div style="font-size:11px;color:var(--text3)">Tu recevras un email 7 jours avant chaque échéance. Le bouton déclenche les rappels côté serveur, mais il ne confirme pas la réception dans ta boîte mail.</div>
         </div>
-      </div>`:''}
+      </div>
 
-      <div style="background:var(--bg);border-radius:10px;padding:1rem">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px">Code PIN</div>
+      <div class="s-card">
+        <div class="s-head">Code PIN</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <input id="np" type="tel" maxlength="4" placeholder="Nouveau PIN (4 chiffres)" style="padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:inherit">
           <button onclick="SPC()" class="btn btn-p" style="align-self:flex-end">Enregistrer le PIN</button>
