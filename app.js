@@ -87,7 +87,23 @@ async function PC(){
 
 // STATE
 
-let G={rows:[],archive_rows:[],tab:'all',comp:false,email:'',fa:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,lm:false,user_role:'',logs:[],cfa:'tous',abos:[],eabo:null,cats:[],salaire:0,cop_credit:{},cal:{y:new Date().getFullYear(),m:new Date().getMonth(),sel:null}};
+let G={rows:[],archive_rows:[],tab:'all',comp:false,email:'',fa:'tous',fcat:'tous',fs:'tous',fq:'',tri:'date',eid:null,pid:null,pm:false,sm:false,sf:false,lm:false,user_role:'',logs:[],cfa:'tous',abos:[],eabo:null,cats:[],salaire:0,cop_credit:{},cal:{y:new Date().getFullYear(),m:new Date().getMonth(),sel:null}};
+let qTimer=null;
+
+function Q(v){
+  G.fq=v;
+  if(qTimer)clearTimeout(qTimer);
+  qTimer=setTimeout(()=>{render();},180);
+}
+
+function RF(){
+  G.fa='tous';
+  G.fcat='tous';
+  G.fs='tous';
+  G.fq='';
+  G.tri='date';
+  render();
+}
 
 async function loadLogs(){
   if(G.user_role!=='Moi'){G.logs=[];return;}
@@ -297,6 +313,8 @@ function filtered(){
     if(G.fa==='cop_all'&&!(r.acheteur==='Copine'||r.partage))return false;
     if(G.fa==='cop_solo'&&!(r.acheteur==='Copine'&&!r.partage))return false;
     if(G.fa==='partage'&&!r.partage)return false;
+    if(G.fcat==='__none__'&&r.categorie)return false;
+    if(G.fcat!=='tous'&&G.fcat!=='__none__'&&r.categorie!==G.fcat)return false;
     if(G.fs!=='tous'&&r.source!==G.fs)return false;
     if(G.fq&&!r.marchand.toLowerCase().includes(G.fq.toLowerCase())&&!(r.notes||'').toLowerCase().includes(G.fq.toLowerCase()))return false;
     return true;
@@ -733,7 +751,7 @@ ${previsionAnnuelle()}<div class="sg">
   <button class="tab ${G.tab==='archive'?'on':''}" onclick="G.tab='archive';render()" style="color:#718096">🗃️ Archives (${G.archive_rows.length})</button>
 </div>
 <div class="filters">
-  <input placeholder="Rechercher..." value="${G.fq}" oninput="G.fq=this.value;render()" style="min-width:120px;flex:1;max-width:180px">
+  <input placeholder="Rechercher..." value="${G.fq}" oninput="Q(this.value)" style="min-width:120px;flex:1;max-width:180px">
   <select onchange="G.fa=this.value;render()">
     <option value="tous" ${G.fa==='tous'?'selected':''}>Tous</option>
     <option value="moi_all" ${G.fa==='moi_all'?'selected':''}>Moi (partagés inclus)</option>
@@ -741,6 +759,11 @@ ${previsionAnnuelle()}<div class="sg">
     <option value="cop_all" ${G.fa==='cop_all'?'selected':''}>Copine (partagés inclus)</option>
     <option value="cop_solo" ${G.fa==='cop_solo'?'selected':''}>Copine sans partagés</option>
     <option value="partage" ${G.fa==='partage'?'selected':''}>Partagés</option>
+  </select>
+  <select onchange="G.fcat=this.value;render()">
+    <option value="tous" ${G.fcat==='tous'?'selected':''}>Toutes catégories</option>
+    <option value="__none__" ${G.fcat==='__none__'?'selected':''}>Sans catégorie</option>
+    ${G.cats.map(c=>`<option value="${c.nom}" ${G.fcat===c.nom?'selected':''}>${c.icon||'🏷️'} ${c.nom}</option>`).join('')}
   </select>
   <select onchange="G.fs=this.value;render()">
     <option value="tous">Toutes sources</option>
@@ -754,6 +777,7 @@ ${previsionAnnuelle()}<div class="sg">
     <option value="acheteur"${G.tri==='acheteur'?'selected':''}>👤 Acheteur (Moi → Copine)</option>
     <option value="recent"  ${G.tri==='recent' ?'selected':''}>🕐 Ajout récent</option>
   </select>
+  <button class="btn" onclick="RF()" title="Réinitialiser les filtres">♻️ Reset</button>
 </div>
 <div class="cards">
 ${rows.length===0?'<div class="empty">Aucun résultat</div>':rows.map(r=>{
